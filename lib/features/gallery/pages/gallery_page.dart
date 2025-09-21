@@ -12,8 +12,6 @@ class GalleryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     final state = ref.watch(imageViewModelProvider);
     final stats = ref.watch(imageStatsProvider);
@@ -37,16 +35,6 @@ class GalleryPage extends ConsumerWidget {
                       Icon(Icons.share),
                       SizedBox(width: 8),
                       Text('Partager tout'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  onTap: () => _showStatsDialog(context, stats),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.analytics_outlined),
-                      SizedBox(width: 8),
-                      Text('Statistiques'),
                     ],
                   ),
                 ),
@@ -141,6 +129,7 @@ class GalleryPage extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return Card(
+      key: ValueKey(image.id),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _viewImage(context, image),
@@ -226,45 +215,6 @@ class GalleryPage extends ConsumerWidget {
     }
   }
 
-  void _showStatsDialog(BuildContext context, ImageStats stats) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Statistiques'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildStatRow('Total d\'images', '${stats.total}'),
-            _buildStatRow('Images terminées', '${stats.completed}'),
-            _buildStatRow(
-              'Taux de succès',
-              '${stats.successRate.toStringAsFixed(1)}%',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
   void _confirmClearAll(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -319,7 +269,7 @@ class GalleryPage extends ConsumerWidget {
       context: context,
       imagePaths: imagePaths,
       onShareComplete: () {
-        print('✅ Partage multiple terminé depuis GalleryPage');
+        print('Partage multiple terminé depuis GalleryPage');
       },
     );
   }

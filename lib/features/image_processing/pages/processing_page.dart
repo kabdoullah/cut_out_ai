@@ -91,12 +91,18 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
             ),
         ],
       ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      body: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height - 
+                      MediaQuery.of(context).padding.top - 
+                      kToolbarHeight,
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(32.w),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               // Animation de traitement IA
               AnimatedBuilder(
                 animation: _animationController,
@@ -180,6 +186,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
               if (currentImage != null)
                 _buildImageInfo(context, currentImage),
             ],
+            ),
           ),
         ),
       ),

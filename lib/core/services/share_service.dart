@@ -207,11 +207,11 @@ class ShareService {
         sharePositionOrigin: sharePositionOrigin,
       );
 
-      print('✅ Partage texte réussi: ${result.status}');
+      print('Partage texte réussi: ${result.status}');
       return result;
 
     } catch (e) {
-      print('❌ Erreur partage texte: $e');
+      print('Erreur partage texte: $e');
       throw ShareException('Erreur lors du partage de texte: $e');
     }
   }

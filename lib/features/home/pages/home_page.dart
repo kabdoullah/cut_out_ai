@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/models/app_image.dart';
 import '../../../core/widgets/theme_switcher.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../core/router/app_router.dart';
@@ -159,26 +160,7 @@ class _HomePageState extends ConsumerState<HomePage>
     );
   }
 
-  Widget _buildSubtitle(BuildContext context, ImageStats stats) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
-    String subtitle =
-        'Transforme tes photos en quelques secondes grâce à notre technologie d\'intelligence artificielle avancée.';
-
-    if (stats.hasAnyImages) {
-      subtitle =
-          'Tu as déjà traité ${stats.completed} image${stats.completed > 1 ? 's' : ''} avec succès ! '
-          'Continue à créer de magnifiques images sans arrière-plan.';
-    }
-
-    return Text(
-      subtitle,
-      style: theme.textTheme.body.copyWith(
-        color: colorScheme.onSurface.withValues(alpha: 0.7),
-      ),
-    );
-  }
 
   Widget _buildFeaturesCard(BuildContext context) {
     final theme = Theme.of(context);

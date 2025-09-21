@@ -158,7 +158,24 @@ class ImageMetadata {
   // Résolution formatée
   String get resolution => '${width}x$height';
 }
+class ImageStats {
+  final int total;
+  final int completed;
+  final int processing;
+  final int failed;
 
+  const ImageStats({
+    required this.total,
+    required this.completed,
+    required this.processing,
+    required this.failed,
+  });
+
+  double get successRate => total > 0 ? (completed / total) * 100 : 0;
+  bool get hasAnyImages => total > 0;
+  bool get hasProcessingImages => processing > 0;
+  bool get hasFailedImages => failed > 0;
+}
 // Exception personnalisée pour le traitement d'image
 class ImageProcessingException implements Exception {
   final String message;

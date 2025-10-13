@@ -12,6 +12,17 @@
 .swiftpm/
 migrate_working_dir/
 
+# Environment variables (contain sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Environment configuration files (JSON)
+.env/dev.json
+.env/staging.json
+.env/prod.json
+# Keep only .example files in version control
+
 # IntelliJ related
 *.iml
 *.ipr

@@ -196,8 +196,8 @@ class _HomePageState extends ConsumerState<HomePage>
                 ],
               ),
               child: Icon(
-                Icons.auto_fix_high, 
-                size: 36.sp, 
+                Icons.auto_fix_high,
+                size: 36.sp,
                 color: Colors.white,
               ),
             ),

@@ -90,8 +90,7 @@ class RetryInterceptor extends Interceptor {
   }
 }
 final dioProvider = Provider<Dio>((ref) {
-  // Debug de l'API Key au démarrage
-  AppConfig.debugApiKeyInfo();
+
 
   // Validation de l'API Key
   if (AppConfig.removeBgApiKey.isEmpty) {

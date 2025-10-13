@@ -11,8 +11,6 @@ import 'features/theme/providers/theme_provider.dart' hide ThemeMode;
 import 'features/theme/providers/theme_provider.dart' as custom_theme;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
   runApp(const ProviderScope(child: MyApp()));
 }
 

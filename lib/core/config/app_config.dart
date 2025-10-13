@@ -24,8 +24,8 @@ class AppConfig {
 
   // URLs utiles
   static const String supportEmail = 'abdoulaye@cutoutai.com';
-  static const String privacyPolicyUrl = 'https://[votre-username].github.io/cutout_ai/';
-  static const String termsOfServiceUrl = 'https://[votre-username].github.io/cutout_ai/';
+  static const String privacyPolicyUrl = 'https://kabdoullah.github.io/cut_out_ai/';
+  static const String termsOfServiceUrl = 'https://kabdoullah.github.io/cut_out_ai/';
 
   // Mode debug
   static const bool isDebugMode = bool.fromEnvironment('DEBUG', defaultValue: false);

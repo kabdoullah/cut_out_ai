@@ -1,0 +1,161 @@
+name: Deploy to Play Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play Store track'
+        required: true
+        type: choice
+        default: 'internal'
+        options:
+          - 'internal'
+          - 'alpha'
+          - 'beta'
+          - 'production'
+      rollout_percentage:
+        description: 'Rollout percentage (only for production)'
+        required: false
+        default: '100'
+  workflow_run:
+    workflows: ["Build Android"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy to Play Store
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release-keystore.jks
+
+      - name: Create key.properties
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=release-keystore.jks
+          EOF
+
+      - name: Update build.gradle.kts for CI keystore path
+        run: |
+          sed -i 's|storeFile = keystoreProperties\["storeFile"\]?.let { rootProject.file(it) }|storeFile = file("release-keystore.jks")|g' android/app/build.gradle.kts
+
+      - name: Build App Bundle
+        env:
+          REMOVEBG_API_KEY: ${{ secrets.REMOVEBG_API_KEY }}
+        run: flutter build appbundle --release --dart-define=REMOVEBG_API_KEY=$REMOVEBG_API_KEY
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          BUILD_NUMBER=$(grep '^version:' pubspec.yaml | cut -d '+' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Extract release notes from CHANGELOG
+        id: changelog
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            # Extract the latest version's changes
+            NOTES=$(sed -n "/## \[${{ steps.version.outputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '1d;$d')
+            if [ -z "$NOTES" ]; then
+              NOTES="Bug fixes and performance improvements"
+            fi
+            echo "notes<<EOF" >> $GITHUB_OUTPUT
+            echo "$NOTES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "notes=Bug fixes and performance improvements" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release notes file
+        run: |
+          mkdir -p distribution/whatsnew
+          echo "${{ steps.changelog.outputs.notes }}" > distribution/whatsnew/whatsnew-fr-FR
+          echo "${{ steps.changelog.outputs.notes }}" > distribution/whatsnew/whatsnew-en-US
+
+      - name: Upload to Play Store
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAYSTORE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.abdoulaye.cutout_ai
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ github.event.inputs.track || 'internal' }}
+          status: completed
+          inAppUpdatePriority: 2
+          userFraction: ${{ github.event.inputs.rollout_percentage && (github.event.inputs.rollout_percentage != '100') && format('{0}', github.event.inputs.rollout_percentage) || '' }}
+          whatsNewDirectory: distribution/whatsnew
+          mappingFile: build/app/outputs/mapping/release/mapping.txt
+
+      - name: Clean up sensitive files
+        if: always()
+        run: |
+          rm -f android/app/release-keystore.jks
+          rm -f android/key.properties
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** ${{ steps.version.outputs.build_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Track:** ${{ github.event.inputs.track || 'internal' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Release Notes" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.changelog.outputs.notes }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Successfully deployed to Google Play Store!" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🚀 Deployment to Play Store successful!"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Track: ${{ github.event.inputs.track || 'internal' }}"
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+      - name: Send notification (placeholder)
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ Deployment successful - Add your notification logic here (Slack, Discord, Email, etc.)"
+          else
+            echo "❌ Deployment failed - Add your notification logic here"
+          fi

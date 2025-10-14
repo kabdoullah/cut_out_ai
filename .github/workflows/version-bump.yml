@@ -1,0 +1,185 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Type de version bump'
+        required: true
+        type: choice
+        default: 'patch'
+        options:
+          - 'patch'   # 1.0.0 -> 1.0.1
+          - 'minor'   # 1.0.0 -> 1.1.0
+          - 'major'   # 1.0.0 -> 2.0.0
+          - 'build'   # 1.0.0+1 -> 1.0.0+2
+      create_tag:
+        description: 'Créer un tag Git'
+        required: true
+        type: boolean
+        default: true
+      trigger_build:
+        description: 'Déclencher le build automatiquement'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  bump-version:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+      new_tag: ${{ steps.bump.outputs.new_tag }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | cut -d ' ' -f 2)
+          VERSION_NAME=$(echo $CURRENT_VERSION | cut -d '+' -f 1)
+          BUILD_NUMBER=$(echo $CURRENT_VERSION | cut -d '+' -f 2)
+
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Calculate new version
+        id: bump
+        run: |
+          VERSION_NAME="${{ steps.current.outputs.version_name }}"
+          BUILD_NUMBER="${{ steps.current.outputs.build_number }}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NAME"
+
+          case "${{ github.event.inputs.bump_type }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              BUILD_NUMBER=$((BUILD_NUMBER + 1))
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              BUILD_NUMBER=$((BUILD_NUMBER + 1))
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              BUILD_NUMBER=$((BUILD_NUMBER + 1))
+              ;;
+            build)
+              BUILD_NUMBER=$((BUILD_NUMBER + 1))
+              ;;
+          esac
+
+          NEW_VERSION_NAME="$MAJOR.$MINOR.$PATCH"
+          NEW_VERSION="$NEW_VERSION_NAME+$BUILD_NUMBER"
+          NEW_TAG="v$NEW_VERSION_NAME"
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version_name=$NEW_VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "new_build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+          echo "New version: $NEW_VERSION"
+          echo "New tag: $NEW_TAG"
+
+      - name: Update pubspec.yaml
+        run: |
+          sed -i "s/^version: .*/version: ${{ steps.bump.outputs.new_version }}/" pubspec.yaml
+          cat pubspec.yaml | grep "^version:"
+
+      - name: Update CHANGELOG.md
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+
+          TODAY=$(date +%Y-%m-%d)
+
+          # Create temporary file with new entry
+          cat > temp_changelog.md << EOF
+          # Changelog
+
+          ## [${{ steps.bump.outputs.new_version_name }}] - $TODAY
+
+          ### Added
+          -
+
+          ### Changed
+          -
+
+          ### Fixed
+          -
+
+          EOF
+
+          # Append existing changelog (skip first line if it's just "# Changelog")
+          tail -n +2 CHANGELOG.md >> temp_changelog.md
+          mv temp_changelog.md CHANGELOG.md
+
+          echo "CHANGELOG.md updated with new version entry"
+
+      - name: Commit changes
+        run: |
+          git add pubspec.yaml CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }}" || echo "No changes to commit"
+          git push origin main
+
+      - name: Create Git tag
+        if: github.event.inputs.create_tag == 'true'
+        run: |
+          git tag ${{ steps.bump.outputs.new_tag }}
+          git push origin ${{ steps.bump.outputs.new_tag }}
+          echo "Tag ${{ steps.bump.outputs.new_tag }} created and pushed"
+
+      - name: Summary
+        run: |
+          echo "## Version Bump Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Previous Version:** ${{ steps.current.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**New Version:** ${{ steps.bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Bump Type:** ${{ github.event.inputs.bump_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.create_tag }}" == "true" ]; then
+            echo "✅ Git tag created: ${{ steps.bump.outputs.new_tag }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ github.event.inputs.trigger_build }}" == "true" ]; then
+            echo "▶️ Build workflow will be triggered automatically" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  trigger-build:
+    name: Trigger Build
+    needs: bump-version
+    if: github.event.inputs.trigger_build == 'true' && github.event.inputs.create_tag == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for tag to be available
+        run: sleep 5
+
+      - name: Trigger build workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build-android.yml',
+              ref: 'main'
+            });
+            console.log('Build workflow triggered successfully');

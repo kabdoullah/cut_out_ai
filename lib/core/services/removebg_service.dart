@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
@@ -75,10 +76,23 @@ class RemoveBgService {
     return path.split('.').last.toLowerCase();
   }
 
+  /// Décode les bytes de réponse d'erreur et extrait le premier message d'erreur.
+  String? _extractApiMessage(dynamic data) {
+    try {
+      final bytes = data as List<int>;
+      final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+      final errors = json['errors'] as List<dynamic>?;
+      if (errors != null && errors.isNotEmpty) {
+        return (errors.first as Map<String, dynamic>)['title'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   String _handleRemoveBgError(DioException e) {
     switch (e.response?.statusCode) {
       case 400:
-        return 'Image invalide ou format non supporté';
+        return _extractApiMessage(e.response?.data) ?? 'Aucun sujet détecté — essayez une image avec un sujet bien défini';
       case 402:
         return 'Crédits API épuisés - Consultez votre compte Remove.bg';
       case 403:

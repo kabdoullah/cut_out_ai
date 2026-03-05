@@ -13,7 +13,7 @@ class DeviceService {
 
         // Essayer d'ouvrir la galerie
         if (await canLaunchUrl(uri)) {
-          return await launchUrl(uri);
+          return await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
           // Fallback : ouvrir l'app Galerie via intent
           return await _openAndroidGalleryFallback();

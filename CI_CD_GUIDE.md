@@ -152,8 +152,7 @@ keytool -list -v -keystore ~/cutout-ai-release.jks
   "private_key_id": "...",
   "private_key": "...",
   "client_email": "...",
-  "client_id": "...",
-  ...
+  "client_id": "..."
 }
 ```
 

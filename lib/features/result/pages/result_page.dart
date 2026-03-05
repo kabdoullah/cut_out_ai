@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/device_service.dart';
 import '../../../core/services/gallery_service.dart';
+import '../../../core/services/image_processing_service.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
+import '../widgets/background_color_picker.dart';
 
 class ResultPage extends ConsumerStatefulWidget {
   final String originalImagePath;
@@ -26,6 +29,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
     with TickerProviderStateMixin {
   double _sliderValue = 0.5; // 0 = avant, 1 = après
   bool _isComparisonMode = false;
+  Color? _backgroundColor; // null = transparent
   late AnimationController _celebrationController;
   late Animation<double> _scaleAnimation;
 
@@ -135,7 +139,16 @@ class _ResultPageState extends ConsumerState<ResultPage>
                             ? _buildSliderComparison(context)
                             : _buildSideBySideComparison(context),
                         
-                        SizedBox(height: 24.h),
+                        SizedBox(height: 16.h),
+
+                        // Sélecteur de couleur de fond
+                        BackgroundColorPicker(
+                          selectedColor: _backgroundColor,
+                          onColorSelected: (color) =>
+                              setState(() => _backgroundColor = color),
+                        ),
+
+                        SizedBox(height: 16.h),
 
                         // Infos sur les fichiers
                         _buildFileInfoCard(context),
@@ -225,14 +238,15 @@ class _ResultPageState extends ConsumerState<ResultPage>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.r),
-            child: _buildImageWidget(imagePath, isProcessed),
+            child: _buildImageWidget(imagePath, isProcessed,
+                bgColor: isProcessed ? _backgroundColor : null),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildImageWidget(String imagePath, bool isProcessed) {
+  Widget _buildImageWidget(String imagePath, bool isProcessed, {Color? bgColor}) {
     // Vérifier si le fichier existe
     final file = File(imagePath);
 
@@ -240,7 +254,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
       return _buildImagePlaceholder(isProcessed);
     }
 
-    return Image.file(
+    final image = Image.file(
       file,
       fit: BoxFit.cover,
       width: double.infinity,
@@ -249,6 +263,11 @@ class _ResultPageState extends ConsumerState<ResultPage>
         return _buildImagePlaceholder(isProcessed);
       },
     );
+
+    if (bgColor != null) {
+      return ColoredBox(color: bgColor, child: image);
+    }
+    return image;
   }
 
   Widget _buildImagePlaceholder(bool isProcessed) {
@@ -423,7 +442,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
               children: [
                 // Image de base (après)
                 Positioned.fill(
-                  child: _buildImageWidget(widget.processedImagePath, true),
+                  child: _buildImageWidget(widget.processedImagePath, true,
+                      bgColor: _backgroundColor),
                 ),
                 
                 // Image overlay (avant) avec clip
@@ -528,15 +548,27 @@ class _ResultPageState extends ConsumerState<ResultPage>
     );
   }
 
-  void _shareResult(BuildContext context) {
+  void _shareResult(BuildContext context) async {
+    String pathToShare = widget.processedImagePath;
+
+    if (_backgroundColor != null) {
+      final fileService = ref.read(fileServiceProvider);
+      final colored = await fileService.applyBackgroundColor(
+          widget.processedImagePath, _backgroundColor!);
+      final tempDir = await getTemporaryDirectory();
+      final tempPath =
+          '${tempDir.path}/cutout_bg_${DateTime.now().millisecondsSinceEpoch}.png';
+      await File(tempPath).writeAsBytes(colored);
+      pathToShare = tempPath;
+    }
+
+    if (!context.mounted) return;
+
     ShareBottomSheet.showForResult(
       context: context,
       originalPath: widget.originalImagePath,
-      processedPath: widget.processedImagePath,
-      onShareComplete: () {
-        // Optionnel: actions après partage réussi
-        print('✅ Partage terminé depuis ResultPage');
-      },
+      processedPath: pathToShare,
+      onShareComplete: () {},
     );
   }
 
@@ -551,8 +583,16 @@ class _ResultPageState extends ConsumerState<ResultPage>
         ),
       );
 
-      // Sauvegarder l'image traitée dans la galerie
-      final success = await GalleryService.saveImageToGallery(widget.processedImagePath);
+      // Sauvegarder l'image traitée dans la galerie (avec couleur de fond si sélectionnée)
+      bool success;
+      if (_backgroundColor != null) {
+        final fileService = ref.read(fileServiceProvider);
+        final colored = await fileService.applyBackgroundColor(
+            widget.processedImagePath, _backgroundColor!);
+        success = await GalleryService.saveImageBytesToGallery(colored);
+      } else {
+        success = await GalleryService.saveImageToGallery(widget.processedImagePath);
+      }
 
       // Fermer le dialog de chargement
       if (context.mounted) {

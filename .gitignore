@@ -16,6 +16,7 @@ migrate_working_dir/
 .env
 .env.local
 .env.*.local
+.env.json
 
 # Environment configuration files (JSON)
 .env/dev.json
@@ -54,4 +55,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing files (NEVER commit these!)
 /android/key.properties
+/android/*.keystore
+/android/*.jks
+/android/app/*.keystore
+/android/app/*.jks
+**/key.properties
+**/*.keystore
+**/*.jks
+
+# Keystore base64 files (for GitHub Actions setup)
+keystore_base64.txt
+*_base64.txt
+
+# Google Cloud Service Account JSON
+service-account*.json
+*-service-account.json

@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 // Service pour la gestion des fichiers locaux
@@ -72,6 +75,39 @@ class FileService {
       }
     } catch (e) {
       throw FileServiceException('Erreur lors du nettoyage: $e');
+    }
+  }
+
+  // Appliquer une couleur de fond sur un PNG transparent
+  Future<Uint8List> applyBackgroundColor(String imagePath, Color backgroundColor) async {
+    try {
+      final bytes = await File(imagePath).readAsBytes();
+
+      final completer = Completer<ui.Image>();
+      ui.decodeImageFromList(bytes, completer.complete);
+      final uiImage = await completer.future;
+
+      final w = uiImage.width;
+      final h = uiImage.height;
+
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+        Paint()..color = backgroundColor,
+      );
+      canvas.drawImage(uiImage, Offset.zero, Paint());
+
+      final composited = await recorder.endRecording().toImage(w, h);
+      final byteData = await composited.toByteData(format: ui.ImageByteFormat.png);
+
+      uiImage.dispose();
+      composited.dispose();
+
+      return byteData!.buffer.asUint8List();
+    } catch (e) {
+      throw FileServiceException('Impossible d\'appliquer la couleur de fond: $e');
     }
   }
 

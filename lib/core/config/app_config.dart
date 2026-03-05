@@ -20,10 +20,11 @@ class AppConfig {
 // Limites Remove.bg
   static const int maxImageSizeMB = 12; // Remove.bg limite à 12MB
   static const int maxImagesStored = 100;
+  static const int dailyRequestLimit = 2;
   static const Duration apiTimeout = Duration(seconds: 45);
 
   // URLs utiles
-  static const String supportEmail = 'abdoulaye@cutoutai.com';
+  static const String supportEmail = 'abdoullahcoulibaly2@gmail.com';
   static const String privacyPolicyUrl = 'https://kabdoullah.github.io/cut_out_ai/';
   static const String termsOfServiceUrl = 'https://kabdoullah.github.io/cut_out_ai/';
 

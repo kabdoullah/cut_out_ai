@@ -1,18 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/models/app_state.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/services/image_processing_service.dart';
+import '../../../core/services/rate_limit_service.dart';
 import '../../../core/services/removebg_service.dart';
 import '../../../core/services/storage_service.dart';
 
 class ImageViewModel extends Notifier<AppState> {
   late final ImageProcessingService _imageProcessingService;
   late final StorageService _storageService;
+  late final RateLimitService _rateLimitService;
 
   @override
   AppState build() {
     _imageProcessingService = ref.watch(imageProcessingServiceProvider);
     _storageService = ref.watch(storageServiceProvider);
+    _rateLimitService = ref.watch(rateLimitServiceProvider);
 
     Future.microtask(() => _initializeApp());
 
@@ -43,6 +47,18 @@ class ImageViewModel extends Notifier<AppState> {
 
 
   Future<void> processImage(String imagePath, String imageName) async {
+    final allowed = await _rateLimitService.canMakeRequest();
+    if (!allowed) {
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final tomorrowStr =
+          '${tomorrow.day.toString().padLeft(2, '0')}/${tomorrow.month.toString().padLeft(2, '0')}';
+      state = state.copyWith(
+        error: 'Limite journalière atteinte (${AppConfig.dailyRequestLimit} requêtes). '
+            'Revenez demain le $tomorrowStr.',
+      );
+      return;
+    }
+
     try {
       final newImage = AppImage.create(
         originalPath: imagePath,
@@ -57,6 +73,9 @@ class ImageViewModel extends Notifier<AppState> {
       final _ = await _imageProcessingService.getImageMetadata(imagePath);
 
       state = state.completeProcessing(newImage.id, processedPath);
+
+      await _rateLimitService.recordRequest();
+      ref.invalidate(remainingRequestsProvider);
 
       await _storageService.saveImages(state.images);
 

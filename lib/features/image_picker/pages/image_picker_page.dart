@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/models/app_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../core/services/rate_limit_service.dart';
 import '../../../core/widgets/retry_connection_dialog.dart';
 import '../../image_processing/providers/image_view_model.dart';
 import '../widgets/permission_dialog.dart';
@@ -25,6 +27,14 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final remainingAsync = ref.watch(remainingRequestsProvider);
+    final remaining = remainingAsync.when(
+      data: (v) => v,
+      loading: () => AppConfig.dailyRequestLimit,
+      error: (_, __) => AppConfig.dailyRequestLimit,
+    );
+    final quotaExhausted = remaining <= 0;
 
     // Surveiller l'état pour détecter le début du traitement
     ref.listen<AppState>(imageViewModelProvider, (previous, next) {
@@ -61,6 +71,38 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
               ),
               textAlign: TextAlign.center,
             ),
+            SizedBox(height: 12.h),
+            if (quotaExhausted)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.lock_clock, color: colorScheme.error, size: 20.sp),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        'Limite atteinte — revenez demain',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Text(
+                '$remaining/${AppConfig.dailyRequestLimit} requête${remaining > 1 ? 's' : ''} disponible${remaining > 1 ? 's' : ''} aujourd\'hui',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                textAlign: TextAlign.center,
+              ),
             SizedBox(height: 48.h),
 
             // Boutons de sélection
@@ -76,6 +118,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                     onTap: () => _handleCameraSelection(),
                     color: colorScheme.primary,
                     isLoading: _isSelecting,
+                    isDisabled: quotaExhausted,
                   ),
                   SizedBox(height: 24.h),
 
@@ -88,6 +131,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                     onTap: () => _handleGallerySelection(),
                     color: colorScheme.secondary,
                     isLoading: _isSelecting,
+                    isDisabled: quotaExhausted,
                   ),
 
                   const Spacer(),
@@ -135,13 +179,14 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
     required VoidCallback onTap,
     required Color color,
     required bool isLoading,
+    bool isDisabled = false,
   }) {
     final theme = Theme.of(context);
 
     return Card(
       elevation: 2,
       child: InkWell(
-        onTap: isLoading ? null : onTap,
+        onTap: (isLoading || isDisabled) ? null : onTap,
         borderRadius: BorderRadius.circular(12.r),
         child: Padding(
           padding: EdgeInsets.all(24.w),

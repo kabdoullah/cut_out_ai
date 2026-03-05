@@ -4,119 +4,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CutOut AI is a Flutter application that removes backgrounds from images using the Remove.bg API. The app supports camera/gallery image selection, AI-powered background removal, and local gallery management with multi-platform support.
+CutOut AI is a Flutter application that removes backgrounds from images using the Remove.bg API. The app supports camera/gallery image selection, AI-powered background removal, and local gallery management.
 
 ## Development Commands
 
-### Core Commands
-- `flutter run` - Start the app in development mode
-- `flutter build apk` - Build Android APK
-- `flutter build ios` - Build iOS app (macOS only)
-- `flutter analyze` - Run static analysis and linting
-- `flutter test` - Run unit tests
-- `flutter clean` - Clean build artifacts
-- `flutter pub get` - Install dependencies
-- `flutter pub upgrade` - Upgrade dependencies
-
-### Running with API Key
-The app requires a Remove.bg API key to function:
 ```bash
-flutter run --dart-define=REMOVEBG_API_KEY=your_api_key_here
+flutter run --dart-define=REMOVEBG_API_KEY=your_key  # Required to run
+flutter analyze                                        # Linting (flutter_lints + riverpod_lint)
+flutter test                                           # Run tests
+flutter build apk --dart-define=REMOVEBG_API_KEY=your_key
 ```
 
-### Linting and Analysis
-- Uses `flutter_lints` for standard Flutter linting rules
-- Custom lint rules via `custom_lint` and `riverpod_lint`
-- Analysis configuration in `analysis_options.yaml`
+The API key is read at compile time via `String.fromEnvironment('REMOVEBG_API_KEY')`. Without it, `dioProvider` throws on first use.
 
 ## Architecture
 
-### State Management
-- **Riverpod** for state management throughout the app
-- **ImageViewModel** (`lib/features/image_processing/providers/image_view_model.dart`) is the main orchestrator
-- Provider-based dependency injection for services
+### State Management (Riverpod 3.0)
+- Uses Riverpod 3.0 `Notifier`/`NotifierProvider` syntax throughout (not legacy `StateNotifier`)
+- **`imageViewModelProvider`** (`lib/features/image_processing/providers/image_view_model.dart`) is the central state store — all image operations go through `ImageViewModel`
+- **`themeProvider`** (`lib/features/theme/providers/theme_provider.dart`) manages light/dark/system theme with `SharedPreferences` persistence
+- Note: the app defines its own `ThemeMode` enum that conflicts with Flutter's. In `main.dart`, this is resolved with a `hide ThemeMode` import alias
 
-### Navigation
-- **GoRouter** for declarative navigation
-- Route definitions in `lib/core/router/app_router.dart`
-- Navigation extensions for type-safe routing
-
-### Key Services
-- **RemoveBgService** (`lib/core/services/removebg_service.dart`) - Handles Remove.bg API integration
-- **ImageProcessingService** - Orchestrates image processing workflow
-- **StorageService** - Local data persistence
-- **ConnectivityService** - Internet connection monitoring
-- **FileService** - File operations and management
-
-### App Structure
-```
-lib/
-├── core/                    # Core app infrastructure
-│   ├── config/             # App configuration and constants
-│   ├── models/             # Core data models (AppImage, AppState)
-│   ├── providers/          # Core providers (connectivity)
-│   ├── router/             # Navigation setup
-│   ├── services/           # Core services
-│   ├── theme/              # App theming
-│   └── widgets/            # Reusable core widgets
-└── features/               # Feature-based modules
-    ├── gallery/            # Image gallery
-    ├── home/               # Home page
-    ├── image_picker/       # Camera/gallery selection
-    ├── image_processing/   # Background removal workflow
-    ├── result/             # Processing results
-    └── theme/              # Theme management
-```
+### Navigation (GoRouter)
+Routes are defined as constants in `AppRoutes` (`lib/core/router/app_router.dart`). The `AppRouterExtension` on `BuildContext` provides helper methods:
+- `context.goToHome()` — replaces stack
+- `context.pushToImagePicker()`, `context.pushToGallery()` — push onto stack
+- `context.pushToProcessing(imagePath)`, `context.pushToResult(...)` — encode params as URI query strings
+- Methods prefixed `goTo*` are deprecated; use `pushTo*` equivalents
 
 ### Data Flow
-1. User selects image via `ImagePickerPage`
-2. Navigation to `ProcessingPage` with image path
-3. `ImageViewModel.processImage()` orchestrates:
-   - Connectivity check
-   - Remove.bg API call via `RemoveBgService`
-   - Local storage via `StorageService`
-   - State updates via Riverpod
-4. Results displayed in `ResultPage`
-5. Processed images accessible in `GalleryPage`
+1. `ImagePickerPage` → user picks image
+2. `ProcessingPage` receives `imagePath` via query param, calls `ImageViewModel.processImage()`
+3. `ImageViewModel` → `ImageProcessingService.removeBackground()` → `RemoveBgService` (Remove.bg API) → `FileService.saveProcessedImage()`
+4. On success, navigates to `ResultPage` with `originalPath` and `processedPath` as query params
+5. `GalleryPage` reads from `completedImagesProvider` (filtered/sorted view of `imageViewModelProvider`)
+
+### Core Services (all exposed as Riverpod providers)
+- **`removeBgServiceProvider`** — wraps Dio, calls Remove.bg `/removebg` endpoint, returns `Uint8List`
+- **`dioProvider`** — configured via `DioConfig` with 45s timeout, `RetryInterceptor` (2 retries, delays 2s/5s, only on 5xx/timeouts, not 402/403)
+- **`storageServiceProvider`** — persists `List<AppImage>` to `SharedPreferences` as JSON
+- **`fileServiceProvider`** — saves processed PNG bytes to app documents directory
+- **`imageProcessingServiceProvider`** — composes `RemoveBgService` + `FileService`
+
+### Key Models
+- **`AppImage`** (`lib/core/models/app_image.dart`) — immutable, `Equatable`, has `id` (timestamp-based), `originalPath`, `processedPath`, `status: AppImageStatus`
+- **`AppState`** (`lib/core/models/app_state.dart`) — immutable Equatable state with extension methods (`startProcessing`, `completeProcessing`, `failProcessing`) that return new instances
+- **`AppImageStatus`** — enum: `pending | processing | completed | failed`
+
+### UI Infrastructure
+- `ScreenUtilInit` design size: 375x812 (iPhone X)
+- App-level wrappers in `main.dart` builder: `ErrorHandler > ConnectivityBanner > LoadingOverlay`
+- `ConnectivityService` + `ConnectivityBanner` monitor network state globally
 
 ## Configuration
 
-### Environment Variables
-- `REMOVEBG_API_KEY` - Required Remove.bg API key
-- `DEBUG` - Optional debug mode flag
+- `lib/core/config/app_config.dart` — all constants (API URL, 12MB size limit, 45s timeout, max 100 stored images)
+- Assets: `assets/icons/` (app icon), `assets/splash/` (splash screen)
+- `flutter_native_splash` configured; `flutter_native_splash` package is commented out in dev_dependencies due to Gradle 8.7 incompatibility
 
-### App Configuration
-- API configuration in `lib/core/config/app_config.dart`
-- 12MB image size limit (Remove.bg constraint)
-- 45-second API timeout
-
-### Dependencies
-Key dependencies include:
-- `flutter_riverpod` - State management
-- `go_router` - Navigation
-- `dio` - HTTP client
-- `flutter_screenutil` - Responsive UI
-- `image_picker` - Camera/gallery access
-- `permission_handler` - Device permissions
-- `connectivity_plus` - Network monitoring
-
-## Development Notes
-
-### API Integration
-- Remove.bg API requires valid API key
-- Error handling for quota limits, invalid keys, rate limiting
-- Automatic credit monitoring via response headers
-
-### State Management Patterns
-- Use `ImageViewModel` for all image-related state changes
-- Leverage provider selectors for UI reactivity
-- Async operations handled via FutureProviders when appropriate
-
-### Testing Strategy
-- Widget tests in `test/widget_test.dart`
-- Test framework: Flutter's built-in testing
-
-### Platform Support
-- Android: Minimum SDK 21
-- iOS: Standard Flutter iOS support
-- Web, Windows, macOS, Linux: Configured but not primary targets
+## Platform Support
+- Android: minSdk 21
+- iOS: standard Flutter support
+- Web/desktop: configured but not primary targets

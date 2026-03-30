@@ -8,6 +8,7 @@ import '../../../core/models/app_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/services/rate_limit_service.dart';
+import '../../../core/ads/ad_providers.dart';
 import '../../../core/widgets/retry_connection_dialog.dart';
 import '../../image_processing/providers/image_view_model.dart';
 import '../widgets/permission_dialog.dart';
@@ -72,7 +73,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 12.h),
-            if (quotaExhausted)
+            if (quotaExhausted) ...[
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 decoration: BoxDecoration(
@@ -94,8 +95,10 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                     ),
                   ],
                 ),
-              )
-            else
+              ),
+              SizedBox(height: 12.h),
+              _buildRewardedAdButton(context),
+            ] else
               Text(
                 '$remaining/${AppConfig.dailyRequestLimit} requête${remaining > 1 ? 's' : ''} disponible${remaining > 1 ? 's' : ''} aujourd\'hui',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -169,6 +172,79 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildRewardedAdButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final adReady = ref.watch(rewardedAdProvider) != null;
+
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.play_circle_outline, color: colorScheme.primary, size: 24.sp),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  'Regarder une publicité pour débloquer 1 requête',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: adReady ? () => _watchRewardedAd(context) : null,
+              icon: const Icon(Icons.ondemand_video),
+              label: Text(adReady ? 'Regarder la pub' : 'Chargement...'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _watchRewardedAd(BuildContext context) async {
+    final shown = ref.read(rewardedAdProvider.notifier).tryShow(
+      onRewarded: () async {
+        await ref.read(rateLimitServiceProvider).grantExtraRequest();
+        ref.invalidate(remainingRequestsProvider);
+        if (!mounted) return;
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('1 requête supplémentaire débloquée !'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      },
+    );
+    if (!shown && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Publicité non disponible, réessayez dans un moment.'),
+        ),
+      );
+    }
   }
 
   Widget _buildSourceButton({

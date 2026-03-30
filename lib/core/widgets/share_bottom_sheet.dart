@@ -285,7 +285,7 @@ class ShareBottomSheet extends StatelessWidget {
           '✨ Gratuit et facile à utiliser\n'
           '🚀 Résultats professionnels\n'
           '📱 Disponible sur mobile\n\n'
-          'Téléchargez-la maintenant !';
+          'Téléchargez-la maintenant : ${AppConfig.appStoreLink}';
 
       final result = await ShareService.shareText(
         appText,

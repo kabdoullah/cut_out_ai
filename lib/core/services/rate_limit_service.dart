@@ -49,6 +49,18 @@ class RateLimitService {
     }
   }
 
+  /// Accorde 1 requête supplémentaire aujourd'hui (après visionnage d'une pub récompensée).
+  Future<void> grantExtraRequest() async {
+    final today = _todayString();
+    final data = await _load();
+    final currentDate = data['date'] as String?;
+    if (currentDate == today) {
+      final count = (data['count'] as int?) ?? 0;
+      await _save({'date': today, 'count': count > 0 ? count - 1 : 0});
+    }
+    // Si pas de données pour aujourd'hui, l'utilisateur a déjà des requêtes disponibles
+  }
+
   Future<({int used, int limit})> getStatus() async {
     final today = _todayString();
     final data = await _load();

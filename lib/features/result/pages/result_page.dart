@@ -10,6 +10,8 @@ import '../../../core/services/gallery_service.dart';
 import '../../../core/services/image_processing_service.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../widgets/background_color_picker.dart';
+import '../../../core/ads/banner_ad_widget.dart';
+import '../../../core/ads/ad_providers.dart';
 
 class ResultPage extends ConsumerStatefulWidget {
   final String originalImagePath;
@@ -29,6 +31,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
     with TickerProviderStateMixin {
   double _sliderValue = 0.5; // 0 = avant, 1 = après
   bool _isComparisonMode = false;
+  bool _interstitialShownOnPage = false;
   Color? _backgroundColor; // null = transparent
   late AnimationController _celebrationController;
   late Animation<double> _scaleAnimation;
@@ -38,6 +41,9 @@ class _ResultPageState extends ConsumerState<ResultPage>
     super.initState();
     _setupAnimations();
     _showCelebration();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(interstitialAdProvider); // déclenche le préchargement lazy
+    });
   }
 
   void _setupAnimations() {
@@ -61,6 +67,12 @@ class _ResultPageState extends ConsumerState<ResultPage>
     }
   }
 
+  void _tryShowInterstitial() {
+    if (_interstitialShownOnPage) return;
+    final shown = ref.read(interstitialAdProvider.notifier).tryShow();
+    if (shown) _interstitialShownOnPage = true;
+  }
+
   @override
   void dispose() {
     _celebrationController.dispose();
@@ -77,7 +89,10 @@ class _ResultPageState extends ConsumerState<ResultPage>
         title: const Text('Résultat'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.popOrGoHome(),
+          onPressed: () {
+            _tryShowInterstitial();
+            context.popOrGoHome();
+          },
         ),
         actions: [
           IconButton(
@@ -159,6 +174,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
               ),
               ),
             ),
+          const Center(child: BannerAdWidget()),
           // Actions du bas
           Container(
             padding: EdgeInsets.all(24.w),
@@ -185,7 +201,10 @@ class _ResultPageState extends ConsumerState<ResultPage>
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => context.pushToImagePicker(),
+                        onPressed: () {
+                          _tryShowInterstitial();
+                          context.pushToImagePicker();
+                        },
                         icon: const Icon(Icons.add_photo_alternate),
                         label: const Text('Nouvelle photo'),
                       ),

@@ -6,6 +6,7 @@ import '../../../core/models/app_image.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../../image_processing/providers/image_view_model.dart';
+import '../../../core/ads/banner_ad_widget.dart';
 
 class GalleryPage extends ConsumerWidget {
   const GalleryPage({super.key});
@@ -108,19 +109,26 @@ class GalleryPage extends ConsumerWidget {
   }
 
   Widget _buildGalleryGrid(BuildContext context, List<AppImage> images) {
-    return GridView.builder(
-      padding: EdgeInsets.all(16.w),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16.w,
-        mainAxisSpacing: 16.h,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: images.length,
-      itemBuilder: (context, index) {
-        final image = images[index];
-        return _buildImageCard(context, image);
-      },
+    return Column(
+      children: [
+        const Center(child: BannerAdWidget()),
+        Expanded(
+          child: GridView.builder(
+            padding: EdgeInsets.all(16.w),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16.w,
+              mainAxisSpacing: 16.h,
+              childAspectRatio: 0.8,
+            ),
+            itemCount: images.length,
+            itemBuilder: (context, index) {
+              final image = images[index];
+              return _buildImageCard(context, image);
+            },
+          ),
+        ),
+      ],
     );
   }
 

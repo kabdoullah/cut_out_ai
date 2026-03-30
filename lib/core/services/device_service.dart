@@ -96,7 +96,7 @@ class DeviceService {
   static Future<bool> openSettings() async {
     try {
       if (Platform.isAndroid) {
-        const androidSettingsUrl = 'package:com.abdoulaye.cutout_ai';
+        const androidSettingsUrl = 'package:com.abdoulaye.cutoutai';
         final Uri uri = Uri.parse(androidSettingsUrl);
 
         if (await canLaunchUrl(uri)) {

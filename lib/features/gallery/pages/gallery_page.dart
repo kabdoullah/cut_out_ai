@@ -13,7 +13,6 @@ class GalleryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final state = ref.watch(imageViewModelProvider);
     final stats = ref.watch(imageStatsProvider);
     final completedImages = ref.watch(completedImagesProvider);
@@ -56,8 +55,8 @@ class GalleryPage extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : completedImages.isEmpty
-          ? _buildEmptyState(context)
-          : _buildGalleryGrid(context, completedImages),
+              ? _buildEmptyState(context)
+              : _buildGalleryGrid(context, completedImages),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.pushToImagePicker(),
         child: const Icon(Icons.add_photo_alternate),
@@ -156,7 +155,8 @@ class GalleryPage extends ConsumerWidget {
                       top: 8.h,
                       right: 8.w,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 6.w, vertical: 2.h),
                         decoration: BoxDecoration(
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(8.r),
@@ -301,7 +301,10 @@ class GalleryPage extends ConsumerWidget {
               width: 40.w,
               height: 4.h,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.4),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurfaceVariant
+                    .withOpacity(0.4),
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
@@ -312,8 +315,8 @@ class GalleryPage extends ConsumerWidget {
               child: Text(
                 image.name,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontWeight: FontWeight.w600,
+                    ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -325,7 +328,8 @@ class GalleryPage extends ConsumerWidget {
                 children: [
                   // Voir l'image
                   ListTile(
-                    leading: Icon(Icons.visibility, color: Theme.of(context).colorScheme.primary),
+                    leading: Icon(Icons.visibility,
+                        color: Theme.of(context).colorScheme.primary),
                     title: const Text('Voir'),
                     onTap: () {
                       Navigator.of(context).pop();
@@ -336,7 +340,8 @@ class GalleryPage extends ConsumerWidget {
                   // Partager
                   if (image.processedPath != null)
                     ListTile(
-                      leading: Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
+                      leading: Icon(Icons.share,
+                          color: Theme.of(context).colorScheme.primary),
                       title: const Text('Partager'),
                       onTap: () {
                         Navigator.of(context).pop();
@@ -352,7 +357,8 @@ class GalleryPage extends ConsumerWidget {
 
                   // Supprimer
                   ListTile(
-                    leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                    leading: Icon(Icons.delete,
+                        color: Theme.of(context).colorScheme.error),
                     title: const Text('Supprimer'),
                     onTap: () {
                       Navigator.of(context).pop();
@@ -372,16 +378,16 @@ class GalleryPage extends ConsumerWidget {
 
   Widget _buildImageWidget(BuildContext context, AppImage image) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     // Priorité : image traitée si disponible, sinon image originale
     final imagePath = image.processedPath ?? image.originalPath;
     final file = File(imagePath);
-    
+
     // Vérifier si le fichier existe
     if (!file.existsSync()) {
       return _buildImagePlaceholder(context);
     }
-    
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(8.r),
       child: Image.file(
@@ -398,10 +404,10 @@ class GalleryPage extends ConsumerWidget {
       ),
     );
   }
-  
+
   Widget _buildImagePlaceholder(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       width: double.infinity,
       height: double.infinity,

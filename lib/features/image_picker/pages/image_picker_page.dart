@@ -82,7 +82,8 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.lock_clock, color: colorScheme.error, size: 20.sp),
+                    Icon(Icons.lock_clock,
+                        color: colorScheme.error, size: 20.sp),
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
@@ -158,7 +159,8 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                           child: Text(
                             'Astuce : Les images avec des contours nets donnent de meilleurs résultats !',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.8),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.8),
                             ),
                           ),
                         ),
@@ -190,7 +192,8 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.play_circle_outline, color: colorScheme.primary, size: 24.sp),
+              Icon(Icons.play_circle_outline,
+                  color: colorScheme.primary, size: 24.sp),
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
@@ -276,18 +279,18 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                 ),
                 child: isLoading
                     ? SizedBox(
-                  width: 32.sp,
-                  height: 32.sp,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                )
+                        width: 32.sp,
+                        height: 32.sp,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                        ),
+                      )
                     : Icon(
-                  icon,
-                  size: 32.sp,
-                  color: color,
-                ),
+                        icon,
+                        size: 32.sp,
+                        color: color,
+                      ),
               ),
               SizedBox(width: 20.w),
               Expanded(
@@ -298,14 +301,17 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                       title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isLoading ? theme.colorScheme.onSurface.withValues(alpha: 0.5) : null,
+                        color: isLoading
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
+                            : null,
                       ),
                     ),
                     SizedBox(height: 4.h),
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -331,7 +337,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
       if (mounted) {
         PermissionDialog.showCameraPermissionDialog(
           context,
-              () => _selectImage(ImageSource.camera),
+          () => _selectImage(ImageSource.camera),
         );
       }
       return;
@@ -350,7 +356,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
       if (mounted) {
         PermissionDialog.showGalleryPermissionDialog(
           context,
-              () => _selectImage(ImageSource.gallery),
+          () => _selectImage(ImageSource.gallery),
         );
       }
       return;
@@ -379,9 +385,9 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
 
         // Démarrer le traitement via le ViewModel
         await ref.read(imageViewModelProvider.notifier).processImage(
-          image.path,
-          imageName,
-        );
+              image.path,
+              imageName,
+            );
       }
     } catch (e) {
       // Afficher l'erreur
@@ -409,4 +415,3 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
     );
   }
 }
-

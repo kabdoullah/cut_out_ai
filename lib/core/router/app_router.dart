@@ -6,7 +6,6 @@ import '../../features/image_picker/pages/image_picker_page.dart';
 import '../../features/image_processing/pages/processing_page.dart';
 import '../../features/result/pages/result_page.dart';
 
-
 // Routes constantes pour éviter les erreurs de typo
 class AppRoutes {
   static const String home = '/';
@@ -107,7 +106,7 @@ final GoRouter appRouter = GoRouter(
 extension AppRouterExtension on BuildContext {
   // Navigation vers la page d'accueil (reset de la pile)
   void goToHome() => go(AppRoutes.home);
-  
+
   // Navigation vers les pages principales (avec pile de navigation)
   void pushToImagePicker() => push(AppRoutes.imagePicker);
   void pushToGallery() => push(AppRoutes.gallery);
@@ -148,16 +147,17 @@ extension AppRouterExtension on BuildContext {
   // Méthodes de compatibilité (deprecated - à remplacer progressivement)
   @deprecated
   void goToImagePicker() => pushToImagePicker();
-  
+
   @deprecated
   void goToGallery() => pushToGallery();
-  
+
   @deprecated
   void goToProcessing(String imagePath) => pushToProcessing(imagePath);
-  
+
   @deprecated
   void goToResult({
     required String originalPath,
     required String processedPath,
-  }) => pushToResult(originalPath: originalPath, processedPath: processedPath);
+  }) =>
+      pushToResult(originalPath: originalPath, processedPath: processedPath);
 }

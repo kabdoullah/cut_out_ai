@@ -75,7 +75,8 @@ class PermissionDialog extends StatelessWidget {
         FilledButton(
           onPressed: () async {
             final navigator = Navigator.of(context); // ✅ Capturer avant l'async
-            final messenger = ScaffoldMessenger.of(context); // ✅ Capturer avant l'async
+            final messenger =
+                ScaffoldMessenger.of(context); // ✅ Capturer avant l'async
 
             navigator.pop(); // Fermer le dialog d'abord
 
@@ -101,7 +102,8 @@ class PermissionDialog extends StatelessWidget {
     }
   }
 
-  void _showSettingsDialog(BuildContext context, NavigatorState navigator, ScaffoldMessengerState messenger) {
+  void _showSettingsDialog(BuildContext context, NavigatorState navigator,
+      ScaffoldMessengerState messenger) {
     // Vérifier si le widget est encore monté
     if (!context.mounted) return;
 
@@ -119,17 +121,19 @@ class PermissionDialog extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () async {
-              final dialogNavigator = Navigator.of(context); // Capturer avant async
+              final dialogNavigator =
+                  Navigator.of(context); // Capturer avant async
 
               dialogNavigator.pop(); // Fermer le dialog
 
               try {
                 final opened = await PermissionService.openDeviceSettings();
-                
+
                 if (opened) {
                   messenger.showSnackBar(
                     const SnackBar(
-                      content: Text('Paramètres ouverts. Revenez dans l\'app après avoir activé les permissions.'),
+                      content: Text(
+                          'Paramètres ouverts. Revenez dans l\'app après avoir activé les permissions.'),
                       duration: Duration(seconds: 4),
                       backgroundColor: Colors.blue,
                     ),
@@ -137,7 +141,8 @@ class PermissionDialog extends StatelessWidget {
                 } else {
                   messenger.showSnackBar(
                     const SnackBar(
-                      content: Text('Impossible d\'ouvrir les paramètres automatiquement. Allez manuellement dans Paramètres > Applications > CutOut AI > Autorisations.'),
+                      content: Text(
+                          'Impossible d\'ouvrir les paramètres automatiquement. Allez manuellement dans Paramètres > Applications > CutOut AI > Autorisations.'),
                       duration: Duration(seconds: 6),
                       backgroundColor: Colors.orange,
                     ),
@@ -162,14 +167,15 @@ class PermissionDialog extends StatelessWidget {
 
   // Factory methods pour simplifier l'usage
   static void showCameraPermissionDialog(
-      BuildContext context,
-      VoidCallback onGranted,
-      ) {
+    BuildContext context,
+    VoidCallback onGranted,
+  ) {
     showDialog(
       context: context,
       builder: (context) => PermissionDialog(
         title: 'Accès à la caméra',
-        message: '${AppConfig.appName} a besoin d\'accéder à votre appareil photo pour prendre des photos à traiter avec l\'IA.',
+        message:
+            '${AppConfig.appName} a besoin d\'accéder à votre appareil photo pour prendre des photos à traiter avec l\'IA.',
         icon: Icons.camera_alt,
         onGranted: onGranted,
       ),
@@ -177,14 +183,15 @@ class PermissionDialog extends StatelessWidget {
   }
 
   static void showGalleryPermissionDialog(
-      BuildContext context,
-      VoidCallback onGranted,
-      ) {
+    BuildContext context,
+    VoidCallback onGranted,
+  ) {
     showDialog(
       context: context,
       builder: (context) => PermissionDialog(
         title: 'Accès à la galerie',
-        message: '${AppConfig.appName} a besoin d\'accéder à votre galerie pour sélectionner des photos à traiter avec l\'IA.',
+        message:
+            '${AppConfig.appName} a besoin d\'accéder à votre galerie pour sélectionner des photos à traiter avec l\'IA.',
         icon: Icons.photo_library,
         onGranted: onGranted,
       ),

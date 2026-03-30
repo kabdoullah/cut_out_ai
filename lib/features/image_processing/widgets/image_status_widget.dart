@@ -268,7 +268,8 @@ class SimpleImageStatusWidget extends StatelessWidget {
     }
   }
 
-  Color _getBackgroundColorForStatus(AppImageStatus status, ColorScheme colorScheme) {
+  Color _getBackgroundColorForStatus(
+      AppImageStatus status, ColorScheme colorScheme) {
     switch (status) {
       case AppImageStatus.pending:
         return colorScheme.surfaceContainerHighest;

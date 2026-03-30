@@ -7,7 +7,8 @@ class RetryConnectionDialog extends ConsumerStatefulWidget {
   const RetryConnectionDialog({super.key});
 
   @override
-  ConsumerState<RetryConnectionDialog> createState() => _RetryConnectionDialogState();
+  ConsumerState<RetryConnectionDialog> createState() =>
+      _RetryConnectionDialogState();
 }
 
 class _RetryConnectionDialogState extends ConsumerState<RetryConnectionDialog> {
@@ -75,10 +76,10 @@ class _RetryConnectionDialogState extends ConsumerState<RetryConnectionDialog> {
           onPressed: _isRetrying ? null : _retryConnection,
           child: _isRetrying
               ? SizedBox(
-            width: 16.w,
-            height: 16.w,
-            child: const CircularProgressIndicator(strokeWidth: 2),
-          )
+                  width: 16.w,
+                  height: 16.w,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
+                )
               : const Text('Réessayer'),
         ),
       ],

@@ -16,7 +16,7 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> 
+class _HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
   late AnimationController _heroController;
   late AnimationController _featuresController;
@@ -36,7 +36,7 @@ class _HomePageState extends ConsumerState<HomePage>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _featuresController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -130,7 +130,6 @@ class _HomePageState extends ConsumerState<HomePage>
                 },
               ),
 
-
               // Espace flexible pour pousser les boutons vers le bas
               SizedBox(height: 40.h),
               // Boutons d'actions avec animation retardée
@@ -143,7 +142,8 @@ class _HomePageState extends ConsumerState<HomePage>
                       end: Offset.zero,
                     ).animate(CurvedAnimation(
                       parent: _featuresController,
-                      curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
+                      curve:
+                          const Interval(0.4, 1.0, curve: Curves.easeOutBack),
                     )),
                     child: FadeTransition(
                       opacity: _featuresAnimation,
@@ -159,8 +159,6 @@ class _HomePageState extends ConsumerState<HomePage>
       ),
     );
   }
-
-
 
   Widget _buildFeaturesCard(BuildContext context) {
     final theme = Theme.of(context);
@@ -283,7 +281,7 @@ class _HomePageState extends ConsumerState<HomePage>
       animation: _featuresAnimation,
       builder: (context, child) {
         final animatedValue = targetValue * _featuresAnimation.value;
-        final displayValue = isPercentage 
+        final displayValue = isPercentage
             ? '${animatedValue.toStringAsFixed(0)}%'
             : '${animatedValue.toInt()}';
 
@@ -342,7 +340,8 @@ class _HomePageState extends ConsumerState<HomePage>
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, ImageStats stats, WidgetRef ref) {
+  Widget _buildActionButtons(
+      BuildContext context, ImageStats stats, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -459,7 +458,7 @@ class _HomePageState extends ConsumerState<HomePage>
   // Partager depuis la page d'accueil
   void _shareFromHome(BuildContext context, WidgetRef ref) {
     final completedImages = ref.read(completedImagesProvider);
-    
+
     if (completedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Aucune création à partager')),

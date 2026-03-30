@@ -78,7 +78,7 @@ class ShareBottomSheet extends StatelessWidget {
                     onTap: () => _shareProcessedImage(context),
                   ),
 
-         /*       // Avant/Après
+                /*       // Avant/Après
                 if (originalPath != null && processedPath != null)
                   _buildShareOption(
                     context,
@@ -368,7 +368,8 @@ class ShareBottomSheet extends StatelessWidget {
     final RenderBox? box = context.findRenderObject() as RenderBox?;
     if (box != null) {
       final position = box.localToGlobal(Offset.zero);
-      return Rect.fromLTWH(position.dx, position.dy, box.size.width, box.size.height);
+      return Rect.fromLTWH(
+          position.dx, position.dy, box.size.width, box.size.height);
     }
     return null;
   }

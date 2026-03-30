@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:url_launcher/url_launcher.dart';
 
 class DeviceService {
-
   // Ouvrir la galerie photos système
   static Future<bool> openGallery() async {
     try {
@@ -122,7 +121,8 @@ class DeviceService {
   static Future<bool> openFileManager() async {
     try {
       if (Platform.isAndroid) {
-        const androidFilesUrl = 'content://com.android.externalstorage.documents/';
+        const androidFilesUrl =
+            'content://com.android.externalstorage.documents/';
         final Uri uri = Uri.parse(androidFilesUrl);
 
         if (await canLaunchUrl(uri)) {
@@ -159,7 +159,8 @@ class DeviceService {
   // Partager du texte
   static Future<bool> shareText(String text, {String? subject}) async {
     try {
-      final String shareUrl = 'mailto:?subject=${Uri.encodeComponent(subject ?? 'CutOut AI')}&body=${Uri.encodeComponent(text)}';
+      final String shareUrl =
+          'mailto:?subject=${Uri.encodeComponent(subject ?? 'CutOut AI')}&body=${Uri.encodeComponent(text)}';
       final Uri uri = Uri.parse(shareUrl);
 
       if (await canLaunchUrl(uri)) {

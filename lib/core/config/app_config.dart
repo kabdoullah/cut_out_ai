@@ -26,11 +26,14 @@ class AppConfig {
   // URLs utiles
   static const String appStoreLink = 'https://kabdoullah.github.io/cut_out_ai/';
   static const String supportEmail = 'abdoullahcoulibaly2@gmail.com';
-  static const String privacyPolicyUrl = 'https://kabdoullah.github.io/cut_out_ai/';
-  static const String termsOfServiceUrl = 'https://kabdoullah.github.io/cut_out_ai/';
+  static const String privacyPolicyUrl =
+      'https://kabdoullah.github.io/cut_out_ai/';
+  static const String termsOfServiceUrl =
+      'https://kabdoullah.github.io/cut_out_ai/';
 
   // Mode debug
-  static const bool isDebugMode = bool.fromEnvironment('DEBUG', defaultValue: false);
+  static const bool isDebugMode =
+      bool.fromEnvironment('DEBUG', defaultValue: false);
 
   // --- AdMob ---
   // IDs de test Google par défaut. Passer --dart-define=USE_TEST_ADS=false en production.
@@ -39,21 +42,25 @@ class AppConfig {
 
   static String get bannerAdUnitIdAndroid => useTestAds
       ? 'ca-app-pub-3940256099942544/6300978111'
-      : const String.fromEnvironment('BANNER_AD_UNIT_ANDROID', defaultValue: '');
+      : const String.fromEnvironment('BANNER_AD_UNIT_ANDROID',
+          defaultValue: '');
   static String get bannerAdUnitIdIos => useTestAds
       ? 'ca-app-pub-3940256099942544/2934735716'
       : const String.fromEnvironment('BANNER_AD_UNIT_IOS', defaultValue: '');
 
   static String get interstitialAdUnitIdAndroid => useTestAds
       ? 'ca-app-pub-3940256099942544/1033173712'
-      : const String.fromEnvironment('INTERSTITIAL_AD_UNIT_ANDROID', defaultValue: '');
+      : const String.fromEnvironment('INTERSTITIAL_AD_UNIT_ANDROID',
+          defaultValue: '');
   static String get interstitialAdUnitIdIos => useTestAds
       ? 'ca-app-pub-3940256099942544/4411468910'
-      : const String.fromEnvironment('INTERSTITIAL_AD_UNIT_IOS', defaultValue: '');
+      : const String.fromEnvironment('INTERSTITIAL_AD_UNIT_IOS',
+          defaultValue: '');
 
   static String get rewardedAdUnitIdAndroid => useTestAds
       ? 'ca-app-pub-3940256099942544/5224354917'
-      : const String.fromEnvironment('REWARDED_AD_UNIT_ANDROID', defaultValue: '');
+      : const String.fromEnvironment('REWARDED_AD_UNIT_ANDROID',
+          defaultValue: '');
   static String get rewardedAdUnitIdIos => useTestAds
       ? 'ca-app-pub-3940256099942544/1712485313'
       : const String.fromEnvironment('REWARDED_AD_UNIT_IOS', defaultValue: '');

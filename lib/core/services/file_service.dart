@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 
 // Service pour la gestion des fichiers locaux
 class FileService {
-
   // Obtenir le répertoire de l'app pour sauvegarder les images traitées
   Future<Directory> get _appDirectory async {
     final directory = await getApplicationDocumentsDirectory();
@@ -21,7 +20,8 @@ class FileService {
   }
 
   // Sauvegarder une image traitée localement
-  Future<String> saveProcessedImage(Uint8List imageData, String originalName) async {
+  Future<String> saveProcessedImage(
+      Uint8List imageData, String originalName) async {
     try {
       final appDir = await _appDirectory;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -79,7 +79,8 @@ class FileService {
   }
 
   // Appliquer une couleur de fond sur un PNG transparent
-  Future<Uint8List> applyBackgroundColor(String imagePath, Color backgroundColor) async {
+  Future<Uint8List> applyBackgroundColor(
+      String imagePath, Color backgroundColor) async {
     try {
       final bytes = await File(imagePath).readAsBytes();
 
@@ -100,14 +101,16 @@ class FileService {
       canvas.drawImage(uiImage, Offset.zero, Paint());
 
       final composited = await recorder.endRecording().toImage(w, h);
-      final byteData = await composited.toByteData(format: ui.ImageByteFormat.png);
+      final byteData =
+          await composited.toByteData(format: ui.ImageByteFormat.png);
 
       uiImage.dispose();
       composited.dispose();
 
       return byteData!.buffer.asUint8List();
     } catch (e) {
-      throw FileServiceException('Impossible d\'appliquer la couleur de fond: $e');
+      throw FileServiceException(
+          'Impossible d\'appliquer la couleur de fond: $e');
     }
   }
 

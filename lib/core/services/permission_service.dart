@@ -16,7 +16,7 @@ class PermissionService {
       // Pour Android 13+ (API 33+)
       if (await _isAndroid13OrHigher()) {
         final status = await Permission.photos.status;
-        
+
         if (status.isGranted) {
           return true;
         } else if (status.isDenied) {
@@ -29,7 +29,7 @@ class PermissionService {
       } else {
         // Pour les versions antérieures
         final status = await Permission.storage.status;
-        
+
         if (status.isGranted) {
           return true;
         } else if (status.isDenied) {
@@ -40,7 +40,7 @@ class PermissionService {
           return false;
         }
       }
-      
+
       return false;
     } catch (e) {
       print('❌ Erreur lors de la demande de permission galerie: $e');
@@ -91,7 +91,7 @@ class PermissionService {
 
       // Vérifier que toutes sont accordées
       final allGranted = statuses.values.every((status) => status.isGranted);
-      
+
       if (!allGranted) {
         // Log des permissions refusées pour debug
         statuses.forEach((permission, status) {
@@ -100,7 +100,7 @@ class PermissionService {
           }
         });
       }
-      
+
       return allGranted;
     } catch (e) {
       print('❌ Erreur lors de la demande des permissions: $e');
@@ -120,7 +120,8 @@ class PermissionService {
   }
 
   // Vérifier si une permission est refusée définitivement
-  static Future<bool> isPermissionPermanentlyDenied(Permission permission) async {
+  static Future<bool> isPermissionPermanentlyDenied(
+      Permission permission) async {
     try {
       final status = await permission.status;
       return status.isPermanentlyDenied;

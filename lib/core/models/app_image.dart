@@ -79,13 +79,13 @@ class AppImage extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    originalPath,
-    processedPath,
-    createdAt,
-    name,
-    status,
-  ];
+        id,
+        originalPath,
+        processedPath,
+        createdAt,
+        name,
+        status,
+      ];
 }
 
 // États possibles d'une image
@@ -158,6 +158,7 @@ class ImageMetadata {
   // Résolution formatée
   String get resolution => '${width}x$height';
 }
+
 class ImageStats {
   final int total;
   final int completed;
@@ -176,6 +177,7 @@ class ImageStats {
   bool get hasProcessingImages => processing > 0;
   bool get hasFailedImages => failed > 0;
 }
+
 // Exception personnalisée pour le traitement d'image
 class ImageProcessingException implements Exception {
   final String message;

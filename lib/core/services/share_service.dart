@@ -39,7 +39,6 @@ class ShareService {
 
       print('✅ Partage réussi: ${result.status}');
       return result;
-
     } catch (e) {
       print('❌ Erreur partage image: $e');
       if (e is ShareException) {
@@ -92,7 +91,6 @@ class ShareService {
 
       print('Partage multiple réussi: ${result.status}');
       return result;
-
     } catch (e) {
       print('Erreur partage multiple: $e');
       if (e is ShareException) {
@@ -143,7 +141,6 @@ class ShareService {
 
       print('✅ Partage avant/après réussi: ${result.status}');
       return result;
-
     } catch (e) {
       print('❌ Erreur partage avant/après: $e');
       if (e is ShareException) {
@@ -181,7 +178,6 @@ class ShareService {
       tempFile.deleteSync();
 
       return result;
-
     } catch (e) {
       print('❌ Erreur partage bytes: $e');
       if (e is ShareException) {
@@ -199,7 +195,8 @@ class ShareService {
     Rect? sharePositionOrigin,
   }) async {
     try {
-      print('📤 Partage texte: ${text.substring(0, text.length > 50 ? 50 : text.length)}...');
+      print(
+          '📤 Partage texte: ${text.substring(0, text.length > 50 ? 50 : text.length)}...');
 
       final result = await Share.share(
         text,
@@ -209,7 +206,6 @@ class ShareService {
 
       print('Partage texte réussi: ${result.status}');
       return result;
-
     } catch (e) {
       print('Erreur partage texte: $e');
       throw ShareException('Erreur lors du partage de texte: $e');
@@ -239,7 +235,8 @@ class ShareService {
     return 'cutout_ai_$timestamp.$extension';
   }
 
-  static Future<File> _createTempFileFromBytes(Uint8List bytes, String fileName) async {
+  static Future<File> _createTempFileFromBytes(
+      Uint8List bytes, String fileName) async {
     final tempDir = await getTemporaryDirectory();
     final tempFile = File('${tempDir.path}/$fileName');
     await tempFile.writeAsBytes(bytes);
@@ -248,7 +245,10 @@ class ShareService {
 
   // Vérifier si le partage est disponible sur la plateforme
   static bool get isAvailable {
-    return Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows;
+    return Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isWindows;
   }
 
   // Obtenir des informations sur le résultat du partage

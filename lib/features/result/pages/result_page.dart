@@ -27,7 +27,7 @@ class ResultPage extends ConsumerStatefulWidget {
   ConsumerState<ResultPage> createState() => _ResultPageState();
 }
 
-class _ResultPageState extends ConsumerState<ResultPage> 
+class _ResultPageState extends ConsumerState<ResultPage>
     with TickerProviderStateMixin {
   double _sliderValue = 0.5; // 0 = avant, 1 = après
   bool _isComparisonMode = false;
@@ -85,155 +85,156 @@ class _ResultPageState extends ConsumerState<ResultPage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Résultat'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () {
-            _tryShowInterstitial();
-            context.popOrGoHome();
-          },
+        appBar: AppBar(
+          title: const Text('Résultat'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              _tryShowInterstitial();
+              context.popOrGoHome();
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(_isComparisonMode ? Icons.compare : Icons.share),
+              onPressed: () => _isComparisonMode
+                  ? _toggleComparisonMode()
+                  : _shareResult(context),
+            ),
+            IconButton(
+              icon: Icon(_isComparisonMode ? Icons.close : Icons.compare),
+              onPressed: _toggleComparisonMode,
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(_isComparisonMode ? Icons.compare : Icons.share),
-            onPressed: () => _isComparisonMode 
-                ? _toggleComparisonMode() 
-                : _shareResult(context),
-          ),
-          IconButton(
-            icon: Icon(_isComparisonMode ? Icons.close : Icons.compare),
-            onPressed: _toggleComparisonMode,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
-              child: AnimatedBuilder(
-                animation: _scaleAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Column(
-                      children: [
-                        SizedBox(height: 20.h),
-                        
-                        // Message de succès
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 16.w),
-                          padding: EdgeInsets.all(12.w),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8.r),
-                            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
-                              SizedBox(width: 8.w),
-                              Expanded(
-                                child: Text(
-                                  'Traitement terminé avec succès !',
-                                  style: TextStyle(
-                                    color: Colors.green.shade700,
-                                    fontWeight: FontWeight.w500,
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16.w),
+                child: AnimatedBuilder(
+                  animation: _scaleAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Column(
+                        children: [
+                          SizedBox(height: 20.h),
+
+                          // Message de succès
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 16.w),
+                            padding: EdgeInsets.all(12.w),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8.r),
+                              border: Border.all(
+                                  color: Colors.green.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.check_circle,
+                                    color: Colors.green, size: 20.sp),
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: Text(
+                                    'Traitement terminé avec succès !',
+                                    style: TextStyle(
+                                      color: Colors.green.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        
-                        SizedBox(height: 24.h),
-                        
-                        // Comparaison avant/après ou slider
-                        _isComparisonMode
-                            ? _buildSliderComparison(context)
-                            : _buildSideBySideComparison(context),
-                        
-                        SizedBox(height: 16.h),
 
-                        // Sélecteur de couleur de fond
-                        BackgroundColorPicker(
-                          selectedColor: _backgroundColor,
-                          onColorSelected: (color) =>
-                              setState(() => _backgroundColor = color),
-                        ),
+                          SizedBox(height: 24.h),
 
-                        SizedBox(height: 16.h),
+                          // Comparaison avant/après ou slider
+                          _isComparisonMode
+                              ? _buildSliderComparison(context)
+                              : _buildSideBySideComparison(context),
 
-                        // Infos sur les fichiers
-                        _buildFileInfoCard(context),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                          SizedBox(height: 16.h),
+
+                          // Sélecteur de couleur de fond
+                          BackgroundColorPicker(
+                            selectedColor: _backgroundColor,
+                            onColorSelected: (color) =>
+                                setState(() => _backgroundColor = color),
+                          ),
+
+                          SizedBox(height: 16.h),
+
+                          // Infos sur les fichiers
+                          _buildFileInfoCard(context),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          const Center(child: BannerAdWidget()),
-          // Actions du bas
-          Container(
-            padding: EdgeInsets.all(24.w),
-            child: Column(
-              children: [
-                // Bouton principal : Sauvegarder
-                SizedBox(
-                  width: double.infinity,
-                  height: 56.h,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _saveResult(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
+            const Center(child: BannerAdWidget()),
+            // Actions du bas
+            Container(
+              padding: EdgeInsets.all(24.w),
+              child: Column(
+                children: [
+                  // Bouton principal : Sauvegarder
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56.h,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _saveResult(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                      ),
+                      icon: const Icon(Icons.download),
+                      label: const Text('Sauvegarder dans la galerie'),
                     ),
-                    icon: const Icon(Icons.download),
-                    label: const Text('Sauvegarder dans la galerie'),
                   ),
-                ),
-                SizedBox(height: 12.h),
+                  SizedBox(height: 12.h),
 
-                // Actions secondaires
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _tryShowInterstitial();
-                          context.pushToImagePicker();
-                        },
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Nouvelle photo'),
+                  // Actions secondaires
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            _tryShowInterstitial();
+                            context.pushToImagePicker();
+                          },
+                          icon: const Icon(Icons.add_photo_alternate),
+                          label: const Text('Nouvelle photo'),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => context.pushToGallery(),
-                        icon: const Icon(Icons.photo_library),
-                        label: const Text('Mes créations'),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.pushToGallery(),
+                          icon: const Icon(Icons.photo_library),
+                          label: const Text('Mes créations'),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      )
-    );
+          ],
+        ));
   }
 
   Widget _buildImageComparison(
-      BuildContext context,
-      String title,
-      String imagePath,
-      Color color,
-      bool isProcessed,
-      ) {
+    BuildContext context,
+    String title,
+    String imagePath,
+    Color color,
+    bool isProcessed,
+  ) {
     final theme = Theme.of(context);
 
     return Column(
@@ -265,7 +266,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
     );
   }
 
-  Widget _buildImageWidget(String imagePath, bool isProcessed, {Color? bgColor}) {
+  Widget _buildImageWidget(String imagePath, bool isProcessed,
+      {Color? bgColor}) {
     // Vérifier si le fichier existe
     final file = File(imagePath);
 
@@ -390,7 +392,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
   Widget _buildSideBySideComparison(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Row(
       children: [
         // Image originale
@@ -422,7 +424,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
   Widget _buildSliderComparison(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Column(
       children: [
         // Instructions
@@ -440,7 +442,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
           ),
         ),
         SizedBox(height: 16.h),
-        
+
         // Container pour la comparaison avec slider
         Container(
           height: 300.h,
@@ -464,7 +466,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                   child: _buildImageWidget(widget.processedImagePath, true,
                       bgColor: _backgroundColor),
                 ),
-                
+
                 // Image overlay (avant) avec clip
                 Positioned.fill(
                   child: ClipRect(
@@ -472,7 +474,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                     child: _buildImageWidget(widget.originalImagePath, false),
                   ),
                 ),
-                
+
                 // Ligne de séparation
                 Positioned(
                   left: _sliderValue * MediaQuery.of(context).size.width * 0.8,
@@ -495,10 +497,12 @@ class _ResultPageState extends ConsumerState<ResultPage>
                     ),
                   ),
                 ),
-                
+
                 // Handle du slider
                 Positioned(
-                  left: (_sliderValue * MediaQuery.of(context).size.width * 0.8) - 15.w,
+                  left:
+                      (_sliderValue * MediaQuery.of(context).size.width * 0.8) -
+                          15.w,
                   top: (300.h / 2) - 15.h,
                   child: Container(
                     width: 30.w,
@@ -525,9 +529,9 @@ class _ResultPageState extends ConsumerState<ResultPage>
             ),
           ),
         ),
-        
+
         SizedBox(height: 16.h),
-        
+
         // Slider
         Slider(
           value: _sliderValue,
@@ -539,9 +543,9 @@ class _ResultPageState extends ConsumerState<ResultPage>
           activeColor: colorScheme.primary,
           inactiveColor: colorScheme.primary.withValues(alpha: 0.3),
         ),
-        
+
         SizedBox(height: 8.h),
-        
+
         // Labels
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 32.w),
@@ -610,7 +614,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
             widget.processedImagePath, _backgroundColor!);
         success = await GalleryService.saveImageBytesToGallery(colored);
       } else {
-        success = await GalleryService.saveImageToGallery(widget.processedImagePath);
+        success =
+            await GalleryService.saveImageToGallery(widget.processedImagePath);
       }
 
       // Fermer le dialog de chargement
@@ -644,7 +649,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
                     // Si échec, proposer d'ouvrir les paramètres
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Impossible d\'ouvrir la galerie automatiquement'),
+                        content: const Text(
+                            'Impossible d\'ouvrir la galerie automatiquement'),
                         action: SnackBarAction(
                           label: 'Paramètres',
                           onPressed: () => DeviceService.openSettings(),
@@ -660,7 +666,6 @@ class _ResultPageState extends ConsumerState<ResultPage>
       } else {
         throw Exception('Échec de la sauvegarde');
       }
-
     } on GalleryException catch (e) {
       // Fermer le dialog de chargement si ouvert
       if (context.mounted && Navigator.of(context).canPop()) {
@@ -763,6 +768,7 @@ class _SliderClipper extends CustomClipper<Rect> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Rect> oldClipper) {
-    return oldClipper is _SliderClipper && oldClipper.sliderValue != sliderValue;
+    return oldClipper is _SliderClipper &&
+        oldClipper.sliderValue != sliderValue;
   }
 }

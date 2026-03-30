@@ -17,7 +17,8 @@ class RemoveBgService {
       // Vérifier la taille de l'image
       final imageSizeMB = imageBytes.length / (1024 * 1024);
       if (imageSizeMB > AppConfig.maxImageSizeMB) {
-        throw RemoveBgException('Image trop volumineuse (${imageSizeMB.toStringAsFixed(1)}MB). Maximum autorisé: ${AppConfig.maxImageSizeMB}MB');
+        throw RemoveBgException(
+            'Image trop volumineuse (${imageSizeMB.toStringAsFixed(1)}MB). Maximum autorisé: ${AppConfig.maxImageSizeMB}MB');
       }
 
       print('🖼️ Traitement image: ${imageSizeMB.toStringAsFixed(2)}MB');
@@ -57,9 +58,9 @@ class RemoveBgService {
       if (response.statusCode == 200) {
         return Uint8List.fromList(response.data);
       } else {
-        throw RemoveBgException('Remove.bg API returned ${response.statusCode}');
+        throw RemoveBgException(
+            'Remove.bg API returned ${response.statusCode}');
       }
-
     } on DioException catch (e) {
       print('❌ Remove.bg DioException: ${e.message}');
       print('❌ Status: ${e.response?.statusCode}');
@@ -92,7 +93,8 @@ class RemoveBgService {
   String _handleRemoveBgError(DioException e) {
     switch (e.response?.statusCode) {
       case 400:
-        return _extractApiMessage(e.response?.data) ?? 'Aucun sujet détecté — essayez une image avec un sujet bien défini';
+        return _extractApiMessage(e.response?.data) ??
+            'Aucun sujet détecté — essayez une image avec un sujet bien défini';
       case 402:
         return 'Crédits API épuisés - Consultez votre compte Remove.bg';
       case 403:

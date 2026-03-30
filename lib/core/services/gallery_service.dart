@@ -5,9 +5,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 class GalleryService {
-
   // Sauvegarder une image dans la galerie système
-  static Future<bool> saveImageToGallery(String imagePath, {String? albumName}) async {
+  static Future<bool> saveImageToGallery(String imagePath,
+      {String? albumName}) async {
     try {
       // 1. Vérifier les permissions
       final hasPermission = await _checkStoragePermission();
@@ -26,7 +26,6 @@ class GalleryService {
 
       print('📸 Image sauvegardée avec succès dans la galerie');
       return true;
-
     } catch (e) {
       print('❌ Erreur sauvegarde galerie: $e');
       if (e is GalleryException) {
@@ -38,7 +37,8 @@ class GalleryService {
   }
 
   // Sauvegarder des bytes directement
-  static Future<bool> saveImageBytesToGallery(Uint8List imageBytes, {String? name}) async {
+  static Future<bool> saveImageBytesToGallery(Uint8List imageBytes,
+      {String? name}) async {
     try {
       // 1. Vérifier les permissions
       final hasPermission = await _checkStoragePermission();
@@ -57,7 +57,6 @@ class GalleryService {
 
       print('📸 Image (bytes) sauvegardée avec succès dans la galerie');
       return true;
-
     } catch (e) {
       print('❌ Erreur sauvegarde galerie (bytes): $e');
       if (e is GalleryException) {
@@ -69,7 +68,8 @@ class GalleryService {
   }
 
   // Créer un fichier temporaire pour les bytes
-  static Future<File> _createTempFile(Uint8List imageBytes, String? name) async {
+  static Future<File> _createTempFile(
+      Uint8List imageBytes, String? name) async {
     final tempDir = Directory.systemTemp;
     final fileName = name ?? _generateImageName();
     final tempFile = File('${tempDir.path}/$fileName.png');
@@ -96,8 +96,9 @@ class GalleryService {
       }
 
       // 2. Si Gal échoue, utiliser permission_handler comme fallback
-      print('⚠️ Gal n\'a pas pu obtenir l\'accès, fallback vers permission_handler');
-      
+      print(
+          '⚠️ Gal n\'a pas pu obtenir l\'accès, fallback vers permission_handler');
+
       if (Platform.isAndroid) {
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;
@@ -114,7 +115,6 @@ class GalleryService {
           print('📱 Android < 13 détecté - Utilisation permission storage');
           return await _requestAndroidStoragePermission();
         }
-
       } else if (Platform.isIOS) {
         // iOS : Permission photos
         print('📱 iOS détecté - Utilisation permission photos');
@@ -132,7 +132,7 @@ class GalleryService {
   // Demander permission photos sur Android 13+
   static Future<bool> _requestAndroidPhotosPermission() async {
     final status = await Permission.photos.status;
-    
+
     if (status.isGranted) {
       return true;
     } else if (status.isDenied) {
@@ -140,24 +140,28 @@ class GalleryService {
       if (newStatus.isGranted) {
         return true;
       } else if (newStatus.isPermanentlyDenied) {
-        print('❌ Permission photos refusée définitivement - Redirection vers paramètres');
-        throw GalleryException('Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.');
+        print(
+            '❌ Permission photos refusée définitivement - Redirection vers paramètres');
+        throw GalleryException(
+            'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.');
       } else {
         print('❌ Permission photos refusée');
         throw GalleryException('Permission d\'accès aux photos refusée');
       }
     } else if (status.isPermanentlyDenied) {
-      print('❌ Permission photos refusée définitivement - Redirection vers paramètres');
-      throw GalleryException('Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.');
+      print(
+          '❌ Permission photos refusée définitivement - Redirection vers paramètres');
+      throw GalleryException(
+          'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.');
     }
-    
+
     return false;
   }
 
   // Demander permission storage sur Android < 13
   static Future<bool> _requestAndroidStoragePermission() async {
     final status = await Permission.storage.status;
-    
+
     if (status.isGranted) {
       return true;
     } else if (status.isDenied) {
@@ -165,24 +169,28 @@ class GalleryService {
       if (newStatus.isGranted) {
         return true;
       } else if (newStatus.isPermanentlyDenied) {
-        print('❌ Permission storage refusée définitivement - Redirection vers paramètres');
-        throw GalleryException('Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.');
+        print(
+            '❌ Permission storage refusée définitivement - Redirection vers paramètres');
+        throw GalleryException(
+            'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.');
       } else {
         print('❌ Permission storage refusée');
         throw GalleryException('Permission d\'accès au stockage refusée');
       }
     } else if (status.isPermanentlyDenied) {
-      print('❌ Permission storage refusée définitivement - Redirection vers paramètres');
-      throw GalleryException('Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.');
+      print(
+          '❌ Permission storage refusée définitivement - Redirection vers paramètres');
+      throw GalleryException(
+          'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.');
     }
-    
+
     return false;
   }
 
   // Demander permission photos sur iOS
   static Future<bool> _requestIOSPhotosPermission() async {
     final status = await Permission.photos.status;
-    
+
     if (status.isGranted) {
       return true;
     } else if (status.isDenied) {
@@ -190,17 +198,21 @@ class GalleryService {
       if (newStatus.isGranted) {
         return true;
       } else if (newStatus.isPermanentlyDenied) {
-        print('❌ Permission photos iOS refusée définitivement - Redirection vers paramètres');
-        throw GalleryException('Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.');
+        print(
+            '❌ Permission photos iOS refusée définitivement - Redirection vers paramètres');
+        throw GalleryException(
+            'Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.');
       } else {
         print('❌ Permission photos iOS refusée');
         throw GalleryException('Permission d\'accès aux photos refusée');
       }
     } else if (status.isPermanentlyDenied) {
-      print('❌ Permission photos iOS refusée définitivement - Redirection vers paramètres');
-      throw GalleryException('Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.');
+      print(
+          '❌ Permission photos iOS refusée définitivement - Redirection vers paramètres');
+      throw GalleryException(
+          'Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.');
     }
-    
+
     return false;
   }
 

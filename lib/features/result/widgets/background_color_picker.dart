@@ -12,16 +12,16 @@ class BackgroundColorPicker extends StatelessWidget {
   });
 
   static const List<Color?> _presets = [
-    null,                      // transparent
+    null, // transparent
     Colors.white,
     Colors.black,
-    Color(0xFF9E9E9E),         // gris
-    Color(0xFFF44336),         // rouge
-    Color(0xFF4CAF50),         // vert
-    Color(0xFF2196F3),         // bleu
-    Color(0xFFFFEB3B),         // jaune
-    Color(0xFFFF9800),         // orange
-    Color(0xFF9C27B0),         // violet
+    Color(0xFF9E9E9E), // gris
+    Color(0xFFF44336), // rouge
+    Color(0xFF4CAF50), // vert
+    Color(0xFF2196F3), // bleu
+    Color(0xFFFFEB3B), // jaune
+    Color(0xFFFF9800), // orange
+    Color(0xFF9C27B0), // violet
   ];
 
   @override
@@ -47,14 +47,14 @@ class BackgroundColorPicker extends StatelessWidget {
           child: Row(
             children: [
               ..._presets.map((color) => Padding(
-                padding: EdgeInsets.only(right: 8.w),
-                child: _ColorSwatch(
-                  color: color,
-                  isSelected: selectedColor == color,
-                  onTap: () => onColorSelected(color),
-                  primaryColor: colorScheme.primary,
-                ),
-              )),
+                    padding: EdgeInsets.only(right: 8.w),
+                    child: _ColorSwatch(
+                      color: color,
+                      isSelected: selectedColor == color,
+                      onTap: () => onColorSelected(color),
+                      primaryColor: colorScheme.primary,
+                    ),
+                  )),
               GestureDetector(
                 onTap: () => _showMoreColors(context),
                 child: Container(
@@ -67,7 +67,8 @@ class BackgroundColorPicker extends StatelessWidget {
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(Icons.add, size: 18.sp, color: colorScheme.onSurface),
+                  child: Icon(Icons.add,
+                      size: 18.sp, color: colorScheme.onSurface),
                 ),
               ),
             ],
@@ -79,11 +80,21 @@ class BackgroundColorPicker extends StatelessWidget {
 
   void _showMoreColors(BuildContext context) {
     const moreColors = [
-      Color(0xFFE91E63), Color(0xFF00BCD4), Color(0xFF8BC34A),
-      Color(0xFFFF5722), Color(0xFF607D8B), Color(0xFF795548),
-      Color(0xFF3F51B5), Color(0xFF009688), Color(0xFFCDDC39),
-      Color(0xFFFFC107), Color(0xFFB0BEC5), Color(0xFFFFCCBC),
-      Color(0xFFD1C4E9), Color(0xFFB2EBF2), Color(0xFFDCEDC8),
+      Color(0xFFE91E63),
+      Color(0xFF00BCD4),
+      Color(0xFF8BC34A),
+      Color(0xFFFF5722),
+      Color(0xFF607D8B),
+      Color(0xFF795548),
+      Color(0xFF3F51B5),
+      Color(0xFF009688),
+      Color(0xFFCDDC39),
+      Color(0xFFFFC107),
+      Color(0xFFB0BEC5),
+      Color(0xFFFFCCBC),
+      Color(0xFFD1C4E9),
+      Color(0xFFB2EBF2),
+      Color(0xFFDCEDC8),
     ];
 
     showDialog(
@@ -97,19 +108,22 @@ class BackgroundColorPicker extends StatelessWidget {
             shrinkWrap: true,
             mainAxisSpacing: 8.h,
             crossAxisSpacing: 8.w,
-            children: moreColors.map((color) => GestureDetector(
-              onTap: () {
-                Navigator.of(ctx).pop();
-                onColorSelected(color);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
-                ),
-              ),
-            )).toList(),
+            children: moreColors
+                .map((color) => GestureDetector(
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        onColorSelected(color);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: Colors.grey.shade300, width: 1),
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
         ),
         actions: [

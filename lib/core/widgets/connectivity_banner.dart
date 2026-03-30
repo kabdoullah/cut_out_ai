@@ -26,7 +26,8 @@ class ConnectivityBanner extends ConsumerWidget {
     );
   }
 
-  Widget _buildWithConnectivityStatus(BuildContext context, ConnectivityStatus status) {
+  Widget _buildWithConnectivityStatus(
+      BuildContext context, ConnectivityStatus status) {
     if (status == ConnectivityStatus.connected) {
       return child; // Pas de banner si connecté
     }

@@ -94,98 +94,102 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
       body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height - 
-                      MediaQuery.of(context).padding.top - 
-                      kToolbarHeight,
+            minHeight: MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                kToolbarHeight,
           ),
           child: Padding(
             padding: EdgeInsets.all(32.w),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-              // Animation de traitement IA
-              AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _pulseAnimation.value,
-                    child: Transform.rotate(
-                      angle: _rotationAnimation.value * 2 * 3.14159,
-                      child: Container(
-                        width: 140.w,
-                        height: 140.w,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colorScheme.primary,
-                              colorScheme.secondary,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withOpacity(0.4),
-                              blurRadius: 30,
-                              spreadRadius: 10,
+                // Animation de traitement IA
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _pulseAnimation.value,
+                      child: Transform.rotate(
+                        angle: _rotationAnimation.value * 2 * 3.14159,
+                        child: Container(
+                          width: 140.w,
+                          height: 140.w,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.secondary,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.auto_fix_high,
-                          size: 60.sp,
-                          color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.primary.withOpacity(0.4),
+                                blurRadius: 30,
+                                spreadRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.auto_fix_high,
+                            size: 60.sp,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: 40.h),
-
-              // Status widget
-              if (currentImage != null) ...[
-                ImageStatusWidget(
-                  status: currentImage.status,
-                  onRetry: currentImage.status.isFailed
-                      ? () => ref.read(imageViewModelProvider.notifier).retryProcessing(currentImage.id)
-                      : null,
+                    );
+                  },
                 ),
-                SizedBox(height: 24.h),
+                SizedBox(height: 40.h),
+
+                // Status widget
+                if (currentImage != null) ...[
+                  ImageStatusWidget(
+                    status: currentImage.status,
+                    onRetry: currentImage.status.isFailed
+                        ? () => ref
+                            .read(imageViewModelProvider.notifier)
+                            .retryProcessing(currentImage.id)
+                        : null,
+                  ),
+                  SizedBox(height: 24.h),
+                ],
+
+                // Texte principal
+                Text(
+                  _getStatusText(
+                      currentImage?.status ?? AppImageStatus.processing),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16.h),
+
+                // Sous-texte
+                Text(
+                  _getSubText(
+                      currentImage?.status ?? AppImageStatus.processing),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 40.h),
+
+                // Barre de progression avec étapes
+                if (state.isLoading) ...[
+                  _buildProgressSteps(context, currentImage),
+                  SizedBox(height: 32.h),
+                ],
+
+                // Informations sur l'image
+                if (currentImage != null)
+                  _buildImageInfo(context, currentImage),
               ],
-
-              // Texte principal
-              Text(
-                _getStatusText(currentImage?.status ?? AppImageStatus.processing),
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16.h),
-
-              // Sous-texte
-              Text(
-                _getSubText(currentImage?.status ?? AppImageStatus.processing),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 40.h),
-
-              // Barre de progression avec étapes
-              if (state.isLoading) ...[
-                _buildProgressSteps(context, currentImage),
-                SizedBox(height: 32.h),
-              ],
-
-              // Informations sur l'image
-              if (currentImage != null)
-                _buildImageInfo(context, currentImage),
-            ],
             ),
           ),
         ),
@@ -208,7 +212,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildStep(context, Icons.upload, 'Envoi', true),
-            _buildStep(context, Icons.psychology, 'IA', currentImage?.status.isProcessing == true),
+            _buildStep(context, Icons.psychology, 'IA',
+                currentImage?.status.isProcessing == true),
             _buildStep(context, Icons.download, 'Réception', false),
           ],
         ),
@@ -216,7 +221,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
     );
   }
 
-  Widget _buildStep(BuildContext context, IconData icon, String label, bool isActive) {
+  Widget _buildStep(
+      BuildContext context, IconData icon, String label, bool isActive) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -349,9 +355,12 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
               Navigator.of(context).pop();
               ref.read(imageViewModelProvider.notifier).clearError();
               // Relancer automatiquement si possible
-              final currentImage = ref.read(imageViewModelProvider).currentImage;
+              final currentImage =
+                  ref.read(imageViewModelProvider).currentImage;
               if (currentImage != null) {
-                ref.read(imageViewModelProvider.notifier).retryProcessing(currentImage.id);
+                ref
+                    .read(imageViewModelProvider.notifier)
+                    .retryProcessing(currentImage.id);
               }
             },
             child: const Text('Réessayer'),

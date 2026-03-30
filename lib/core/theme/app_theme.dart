@@ -82,7 +82,6 @@ class AppTheme {
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFF818CF8), // Plus clair pour le dark mode
       primaryContainer: Color(0xFF3730A3),
@@ -96,7 +95,6 @@ class AppTheme {
       onSurface: Color(0xFFF9FAFB),
       outline: Color(0xFF4B5563),
     ),
-
     appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,
@@ -108,13 +106,11 @@ class AppTheme {
         fontWeight: FontWeight.w600,
       ),
     ),
-
     cardTheme: CardThemeData(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: const Color(0xFF1F2937),
     ),
-
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
@@ -123,7 +119,6 @@ class AppTheme {
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       ),
     ),
-
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: const Color(0xFF374151),

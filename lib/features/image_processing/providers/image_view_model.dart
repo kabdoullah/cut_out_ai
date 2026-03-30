@@ -45,7 +45,6 @@ class ImageViewModel extends Notifier<AppState> {
     }
   }
 
-
   Future<void> processImage(String imagePath, String imageName) async {
     final allowed = await _rateLimitService.canMakeRequest();
     if (!allowed) {
@@ -53,7 +52,8 @@ class ImageViewModel extends Notifier<AppState> {
       final tomorrowStr =
           '${tomorrow.day.toString().padLeft(2, '0')}/${tomorrow.month.toString().padLeft(2, '0')}';
       state = state.copyWith(
-        error: 'Limite journalière atteinte (${AppConfig.dailyRequestLimit} requêtes). '
+        error:
+            'Limite journalière atteinte (${AppConfig.dailyRequestLimit} requêtes). '
             'Revenez demain le $tomorrowStr.',
       );
       return;
@@ -68,7 +68,8 @@ class ImageViewModel extends Notifier<AppState> {
       state = state.addImage(newImage);
       state = state.startProcessing(newImage.id);
 
-      final processedPath = await _imageProcessingService.removeBackground(imagePath);
+      final processedPath =
+          await _imageProcessingService.removeBackground(imagePath);
 
       final _ = await _imageProcessingService.getImageMetadata(imagePath);
 
@@ -78,17 +79,18 @@ class ImageViewModel extends Notifier<AppState> {
       ref.invalidate(remainingRequestsProvider);
 
       await _storageService.saveImages(state.images);
-
     } on RemoveBgException catch (e) {
       final currentImage = state.currentImage;
       if (currentImage != null) {
-        state = state.failProcessing(currentImage.id, 'Remove.bg: ${e.message}');
+        state =
+            state.failProcessing(currentImage.id, 'Remove.bg: ${e.message}');
         await _storageService.saveImages(state.images);
       }
     } on StorageException catch (e) {
       final currentImage = state.currentImage;
       if (currentImage != null) {
-        state = state.failProcessing(currentImage.id, 'Sauvegarde: ${e.message}');
+        state =
+            state.failProcessing(currentImage.id, 'Sauvegarde: ${e.message}');
       }
     } catch (e) {
       final currentImage = state.currentImage;
@@ -106,7 +108,6 @@ class ImageViewModel extends Notifier<AppState> {
       state = state.startProcessing(imageId);
 
       await processImage(image.originalPath, image.name);
-
     } catch (e) {
       state = state.failProcessing(imageId, 'Échec du retry: $e');
     }
@@ -117,7 +118,6 @@ class ImageViewModel extends Notifier<AppState> {
       await _storageService.deleteImage(imageId, state.images);
 
       state = state.removeImage(imageId);
-
     } catch (e) {
       state = state.copyWith(error: 'Erreur lors de la suppression: $e');
     }
@@ -180,8 +180,8 @@ final imageStatsProvider = Provider<ImageStats>((ref) {
   );
 });
 
-
-final processImageProvider = FutureProvider.family<void, ProcessImageParams>((ref, params) async {
+final processImageProvider =
+    FutureProvider.family<void, ProcessImageParams>((ref, params) async {
   final viewModel = ref.read(imageViewModelProvider.notifier);
   await viewModel.processImage(params.imagePath, params.imageName);
 });

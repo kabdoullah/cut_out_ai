@@ -39,6 +39,7 @@ class DioConfig {
     return dio;
   }
 }
+
 // Intercepteur de retry personnalisé pour Remove.bg
 class RetryInterceptor extends Interceptor {
   final Dio dio;
@@ -60,7 +61,8 @@ class RetryInterceptor extends Interceptor {
     if (retryCount < retries && _shouldRetry(err)) {
       extra['retryCount'] = retryCount + 1;
 
-      print('🔄 Retry ${retryCount + 1}/$retries pour ${err.response?.statusCode}');
+      print(
+          '🔄 Retry ${retryCount + 1}/$retries pour ${err.response?.statusCode}');
 
       // Attendre avant de réessayer
       if (retryCount < retryDelays.length) {
@@ -89,12 +91,12 @@ class RetryInterceptor extends Interceptor {
     // Ne PAS retry pour 402 (pas de crédits), 403 (API key), etc.
   }
 }
+
 final dioProvider = Provider<Dio>((ref) {
-
-
   // Validation de l'API Key
   if (AppConfig.removeBgApiKey.isEmpty) {
-    throw Exception('❌ API Key Remove.bg manquante ! Utilise: flutter run --dart-define=REMOVEBG_API_KEY=ton_api_key');
+    throw Exception(
+        '❌ API Key Remove.bg manquante ! Utilise: flutter run --dart-define=REMOVEBG_API_KEY=ton_api_key');
   }
 
   final dio = DioConfig.createDio();

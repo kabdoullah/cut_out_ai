@@ -13,7 +13,7 @@ import 'features/theme/providers/theme_provider.dart' as custom_theme;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MobileAds.instance.initialize();
+  //await MobileAds.instance.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
 

@@ -377,7 +377,6 @@ class GalleryPage extends ConsumerWidget {
   }
 
   Widget _buildImageWidget(BuildContext context, AppImage image) {
-
     // Priorité : image traitée si disponible, sinon image originale
     final imagePath = image.processedPath ?? image.originalPath;
     final file = File(imagePath);

@@ -159,8 +159,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                           child: Text(
                             'Astuce : Les images avec des contours nets donnent de meilleurs résultats !',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color:
-                                  colorScheme.onSurface.withOpacity(0.8),
+                              color: colorScheme.onSurface.withOpacity(0.8),
                             ),
                           ),
                         ),
@@ -310,8 +309,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -407,5 +405,4 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
       }
     }
   }
-
 }

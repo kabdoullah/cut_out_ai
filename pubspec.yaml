@@ -38,19 +38,19 @@ dependencies:
   go_router: ^16.2.1
   dio: ^5.9.0
   flutter_screenutil: ^5.9.3
-  shared_preferences: ^2.5.3
+  shared_preferences: any
   equatable: ^2.0.7
-  path_provider: ^2.1.5
-  image_picker: ^1.2.0
-  permission_handler: ^12.0.1
-  flutter_launcher_icons: ^0.14.4
-  connectivity_plus: ^6.1.5
+  path_provider: any
+  image_picker: any
+  permission_handler: any
+  flutter_launcher_icons: any
+  connectivity_plus: any
   internet_connection_checker: ^3.0.1
-  device_info_plus: ^12.1.0
-  url_launcher: ^6.3.2
-  gal: ^2.3.2
-  share_plus: ^10.1.2
-  google_mobile_ads: ^5.1.0
+  device_info_plus: any
+  url_launcher: any
+  gal: any
+  share_plus: any
+  google_mobile_ads: any
 
 dev_dependencies:
   flutter_test:

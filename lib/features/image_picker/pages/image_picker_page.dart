@@ -68,7 +68,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
             Text(
               'L\'intelligence artificielle va analyser ton image et supprimer automatiquement l\'arrière-plan.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
+                color: colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -103,7 +103,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
               Text(
                 '$remaining/${AppConfig.dailyRequestLimit} requête${remaining > 1 ? 's' : ''} disponible${remaining > 1 ? 's' : ''} aujourd\'hui',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: colorScheme.onSurface.withOpacity(0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -160,7 +160,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                             'Astuce : Les images avec des contours nets donnent de meilleurs résultats !',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
-                                  colorScheme.onSurface.withValues(alpha: 0.8),
+                                  colorScheme.onSurface.withOpacity(0.8),
                             ),
                           ),
                         ),
@@ -186,7 +186,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.4)),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.4)),
       ),
       child: Column(
         children: [
@@ -274,7 +274,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
               Container(
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: isLoading
@@ -302,7 +302,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: isLoading
-                            ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
+                            ? theme.colorScheme.onSurface.withOpacity(0.5)
                             : null,
                       ),
                     ),
@@ -311,7 +311,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -321,7 +321,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16.sp,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: theme.colorScheme.onSurface.withOpacity(0.4),
                 ),
             ],
           ),
@@ -408,10 +408,4 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
     }
   }
 
-  void _showConnectionDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => const RetryConnectionDialog(),
-    );
-  }
 }

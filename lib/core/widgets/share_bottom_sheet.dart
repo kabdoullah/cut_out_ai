@@ -37,7 +37,7 @@ class ShareBottomSheet extends StatelessWidget {
             width: 40.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              color: colorScheme.onSurfaceVariant.withOpacity(0.4),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -151,7 +151,7 @@ class ShareBottomSheet extends StatelessWidget {
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.2),
+              color: colorScheme.outline.withOpacity(0.2),
             ),
             borderRadius: BorderRadius.circular(12.r),
           ),

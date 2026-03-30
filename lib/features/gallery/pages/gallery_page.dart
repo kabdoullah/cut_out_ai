@@ -189,7 +189,7 @@ class GalleryPage extends ConsumerWidget {
                   Text(
                     _formatDate(image.createdAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                 ],
@@ -377,7 +377,6 @@ class GalleryPage extends ConsumerWidget {
   }
 
   Widget _buildImageWidget(BuildContext context, AppImage image) {
-    final colorScheme = Theme.of(context).colorScheme;
 
     // Priorité : image traitée si disponible, sinon image originale
     final imagePath = image.processedPath ?? image.originalPath;

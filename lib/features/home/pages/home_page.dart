@@ -80,7 +80,6 @@ class _HomePageState extends ConsumerState<HomePage>
 
     // Surveiller les statistiques pour afficher des infos dynamiques
     final stats = ref.watch(imageStatsProvider);
-    final isInitialized = ref.watch(appInitializationProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -187,7 +186,7 @@ class _HomePageState extends ConsumerState<HomePage>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    color: colorScheme.primary.withOpacity(0.3),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -444,7 +443,7 @@ class _HomePageState extends ConsumerState<HomePage>
                 Text(
                   description,
                   style: theme.textTheme.caption.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],

@@ -12,7 +12,7 @@ extension AppColors on ColorScheme {
       : const Color(0xFFFBBF24);
 
   Color get cardShadow => brightness == Brightness.light
-      ? Colors.black.withValues(alpha: 0.1)
+      ? Colors.black.withOpacity(0.1)
       : Colors.transparent;
 }
 

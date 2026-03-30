@@ -126,10 +126,10 @@ class _ResultPageState extends ConsumerState<ResultPage>
                             margin: EdgeInsets.symmetric(horizontal: 16.w),
                             padding: EdgeInsets.all(12.w),
                             decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.1),
+                              color: Colors.green.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8.r),
                               border: Border.all(
-                                  color: Colors.green.withValues(alpha: 0.3)),
+                                  color: Colors.green.withOpacity(0.3)),
                             ),
                             child: Row(
                               children: [
@@ -252,7 +252,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: color.withValues(alpha: 0.3),
+              color: color.withOpacity(0.3),
               width: 2,
             ),
           ),
@@ -437,7 +437,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
           child: Text(
             'Glissez pour comparer avant/après',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
+              color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
         ),
@@ -451,7 +451,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
             borderRadius: BorderRadius.circular(12.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withOpacity(0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -489,7 +489,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                         color: colorScheme.primary,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
+                            color: Colors.black.withOpacity(0.3),
                             blurRadius: 4,
                           ),
                         ],
@@ -513,7 +513,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                       border: Border.all(color: Colors.white, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
+                          color: Colors.black.withOpacity(0.3),
                           blurRadius: 6,
                         ),
                       ],
@@ -541,7 +541,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
             });
           },
           activeColor: colorScheme.primary,
-          inactiveColor: colorScheme.primary.withValues(alpha: 0.3),
+          inactiveColor: colorScheme.primary.withOpacity(0.3),
         ),
 
         SizedBox(height: 8.h),
@@ -555,13 +555,13 @@ class _ResultPageState extends ConsumerState<ResultPage>
               Text(
                 'Avant',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
               Text(
                 'Après',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ],

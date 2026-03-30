@@ -63,7 +63,7 @@ class BackgroundColorPicker extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.5),
+                      color: colorScheme.outline.withOpacity(0.5),
                       width: 1.5,
                     ),
                   ),

@@ -174,7 +174,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                   _getSubText(
                       currentImage?.status ?? AppImageStatus.processing),
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -240,7 +240,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
             icon,
             color: isActive
                 ? colorScheme.onPrimary
-                : colorScheme.onSurface.withValues(alpha: 0.5),
+                : colorScheme.onSurface.withOpacity(0.5),
             size: 20.sp,
           ),
         ),
@@ -250,7 +250,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
           style: theme.textTheme.bodySmall?.copyWith(
             color: isActive
                 ? colorScheme.primary
-                : colorScheme.onSurface.withValues(alpha: 0.5),
+                : colorScheme.onSurface.withOpacity(0.5),
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -289,7 +289,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                 Text(
                   'Traitement IA en cours',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],

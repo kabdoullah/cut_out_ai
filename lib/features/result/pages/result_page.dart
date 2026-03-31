@@ -10,8 +10,6 @@ import '../../../core/services/gallery_service.dart';
 import '../../../core/services/image_processing_service.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../widgets/background_color_picker.dart';
-import '../../../core/ads/banner_ad_widget.dart';
-import '../../../core/ads/ad_providers.dart';
 
 class ResultPage extends ConsumerStatefulWidget {
   final String originalImagePath;
@@ -29,10 +27,9 @@ class ResultPage extends ConsumerStatefulWidget {
 
 class _ResultPageState extends ConsumerState<ResultPage>
     with TickerProviderStateMixin {
-  double _sliderValue = 0.5; // 0 = avant, 1 = après
+  double _sliderValue = 0.5;
   bool _isComparisonMode = false;
-  bool _interstitialShownOnPage = false;
-  Color? _backgroundColor; // null = transparent
+  Color? _backgroundColor;
   late AnimationController _celebrationController;
   late Animation<double> _scaleAnimation;
 
@@ -41,9 +38,6 @@ class _ResultPageState extends ConsumerState<ResultPage>
     super.initState();
     _setupAnimations();
     _showCelebration();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(interstitialAdProvider); // déclenche le préchargement lazy
-    });
   }
 
   void _setupAnimations() {
@@ -53,10 +47,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
     );
 
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _celebrationController,
-        curve: Curves.elasticOut,
-      ),
+      CurvedAnimation(parent: _celebrationController, curve: Curves.elasticOut),
     );
   }
 
@@ -65,12 +56,6 @@ class _ResultPageState extends ConsumerState<ResultPage>
     if (mounted) {
       _celebrationController.forward();
     }
-  }
-
-  void _tryShowInterstitial() {
-    if (_interstitialShownOnPage) return;
-    final shown = ref.read(interstitialAdProvider.notifier).tryShow();
-    if (shown) _interstitialShownOnPage = true;
   }
 
   @override
@@ -85,147 +70,150 @@ class _ResultPageState extends ConsumerState<ResultPage>
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Résultat'),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              _tryShowInterstitial();
-              context.popOrGoHome();
-            },
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(_isComparisonMode ? Icons.compare : Icons.share),
-              onPressed: () => _isComparisonMode
-                  ? _toggleComparisonMode()
-                  : _shareResult(context),
-            ),
-            IconButton(
-              icon: Icon(_isComparisonMode ? Icons.close : Icons.compare),
-              onPressed: _toggleComparisonMode,
-            ),
-          ],
+      appBar: AppBar(
+        title: const Text('Résultat'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            context.popOrGoHome();
+          },
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(16.w),
-                child: AnimatedBuilder(
-                  animation: _scaleAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: Column(
-                        children: [
-                          SizedBox(height: 20.h),
+        actions: [
+          IconButton(
+            icon: Icon(_isComparisonMode ? Icons.compare : Icons.share),
+            onPressed: () => _isComparisonMode
+                ? _toggleComparisonMode()
+                : _shareResult(context),
+          ),
+          IconButton(
+            icon: Icon(_isComparisonMode ? Icons.close : Icons.compare),
+            onPressed: _toggleComparisonMode,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: AnimatedBuilder(
+                animation: _scaleAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scaleAnimation.value,
+                    child: Column(
+                      children: [
+                        SizedBox(height: 20.h),
 
-                          // Message de succès
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 16.w),
-                            padding: EdgeInsets.all(12.w),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8.r),
-                              border: Border.all(
-                                  color: Colors.green.withOpacity(0.3)),
+                        // Message de succès
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 16.w),
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: Colors.green.withValues(alpha: 0.3),
                             ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.check_circle,
-                                    color: Colors.green, size: 20.sp),
-                                SizedBox(width: 8.w),
-                                Expanded(
-                                  child: Text(
-                                    'Traitement terminé avec succès !',
-                                    style: TextStyle(
-                                      color: Colors.green.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Text(
+                                  'Traitement terminé avec succès !',
+                                  style: TextStyle(
+                                    color: Colors.green.shade700,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                        ),
 
-                          SizedBox(height: 24.h),
+                        SizedBox(height: 24.h),
 
-                          // Comparaison avant/après ou slider
-                          _isComparisonMode
-                              ? _buildSliderComparison(context)
-                              : _buildSideBySideComparison(context),
+                        // Comparaison avant/après ou slider
+                        _isComparisonMode
+                            ? _buildSliderComparison(context)
+                            : _buildSideBySideComparison(context),
 
-                          SizedBox(height: 16.h),
+                        SizedBox(height: 16.h),
 
-                          // Sélecteur de couleur de fond
-                          BackgroundColorPicker(
-                            selectedColor: _backgroundColor,
-                            onColorSelected: (color) =>
-                                setState(() => _backgroundColor = color),
-                          ),
+                        // Sélecteur de couleur de fond
+                        BackgroundColorPicker(
+                          selectedColor: _backgroundColor,
+                          onColorSelected: (color) =>
+                              setState(() => _backgroundColor = color),
+                        ),
 
-                          SizedBox(height: 16.h),
+                        SizedBox(height: 16.h),
 
-                          // Infos sur les fichiers
-                          _buildFileInfoCard(context),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            const Center(child: BannerAdWidget()),
-            // Actions du bas
-            Container(
-              padding: EdgeInsets.all(24.w),
-              child: Column(
-                children: [
-                  // Bouton principal : Sauvegarder
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56.h,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _saveResult(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                      ),
-                      icon: const Icon(Icons.download),
-                      label: const Text('Sauvegarder dans la galerie'),
+                        // Infos sur les fichiers
+                        _buildFileInfoCard(context),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 12.h),
-
-                  // Actions secondaires
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            _tryShowInterstitial();
-                            context.pushToImagePicker();
-                          },
-                          icon: const Icon(Icons.add_photo_alternate),
-                          label: const Text('Nouvelle photo'),
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.pushToGallery(),
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('Mes créations'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-          ],
-        ));
+          ),
+
+          // Actions du bas
+          Container(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              children: [
+                // Bouton principal : Sauvegarder
+                SizedBox(
+                  width: double.infinity,
+                  height: 56.h,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _saveResult(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                    ),
+                    icon: const Icon(Icons.download),
+                    label: const Text('Sauvegarder dans la galerie'),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+
+                // Actions secondaires
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          context.pushToImagePicker();
+                        },
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: const Text('Nouvelle photo'),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.pushToGallery(),
+                        icon: const Icon(Icons.photo_library),
+                        label: const Text('Mes créations'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildImageComparison(
@@ -251,23 +239,26 @@ class _ResultPageState extends ConsumerState<ResultPage>
           height: 200.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 2,
-            ),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10.r),
-            child: _buildImageWidget(imagePath, isProcessed,
-                bgColor: isProcessed ? _backgroundColor : null),
+            child: _buildImageWidget(
+              imagePath,
+              isProcessed,
+              bgColor: isProcessed ? _backgroundColor : null,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildImageWidget(String imagePath, bool isProcessed,
-      {Color? bgColor}) {
+  Widget _buildImageWidget(
+    String imagePath,
+    bool isProcessed, {
+    Color? bgColor,
+  }) {
     // Vérifier si le fichier existe
     final file = File(imagePath);
 
@@ -307,10 +298,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
           SizedBox(height: 8.h),
           Text(
             isProcessed ? 'Image traitée' : 'Image originale',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 12.sp,
-            ),
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12.sp),
           ),
         ],
       ),
@@ -437,7 +425,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
           child: Text(
             'Glissez pour comparer avant/après',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -451,7 +439,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
             borderRadius: BorderRadius.circular(12.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -463,8 +451,11 @@ class _ResultPageState extends ConsumerState<ResultPage>
               children: [
                 // Image de base (après)
                 Positioned.fill(
-                  child: _buildImageWidget(widget.processedImagePath, true,
-                      bgColor: _backgroundColor),
+                  child: _buildImageWidget(
+                    widget.processedImagePath,
+                    true,
+                    bgColor: _backgroundColor,
+                  ),
                 ),
 
                 // Image overlay (avant) avec clip
@@ -489,7 +480,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                         color: colorScheme.primary,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 4,
                           ),
                         ],
@@ -502,7 +493,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                 Positioned(
                   left:
                       (_sliderValue * MediaQuery.of(context).size.width * 0.8) -
-                          15.w,
+                      15.w,
                   top: (300.h / 2) - 15.h,
                   child: Container(
                     width: 30.w,
@@ -513,7 +504,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                       border: Border.all(color: Colors.white, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 6,
                         ),
                       ],
@@ -541,7 +532,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
             });
           },
           activeColor: colorScheme.primary,
-          inactiveColor: colorScheme.primary.withOpacity(0.3),
+          inactiveColor: colorScheme.primary.withValues(alpha: 0.3),
         ),
 
         SizedBox(height: 8.h),
@@ -555,13 +546,13 @@ class _ResultPageState extends ConsumerState<ResultPage>
               Text(
                 'Avant',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               Text(
                 'Après',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -577,7 +568,9 @@ class _ResultPageState extends ConsumerState<ResultPage>
     if (_backgroundColor != null) {
       final fileService = ref.read(fileServiceProvider);
       final colored = await fileService.applyBackgroundColor(
-          widget.processedImagePath, _backgroundColor!);
+        widget.processedImagePath,
+        _backgroundColor!,
+      );
       final tempDir = await getTemporaryDirectory();
       final tempPath =
           '${tempDir.path}/cutout_bg_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -601,9 +594,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Sauvegarder l'image traitée dans la galerie (avec couleur de fond si sélectionnée)
@@ -611,11 +602,14 @@ class _ResultPageState extends ConsumerState<ResultPage>
       if (_backgroundColor != null) {
         final fileService = ref.read(fileServiceProvider);
         final colored = await fileService.applyBackgroundColor(
-            widget.processedImagePath, _backgroundColor!);
+          widget.processedImagePath,
+          _backgroundColor!,
+        );
         success = await GalleryService.saveImageBytesToGallery(colored);
       } else {
-        success =
-            await GalleryService.saveImageToGallery(widget.processedImagePath);
+        success = await GalleryService.saveImageToGallery(
+          widget.processedImagePath,
+        );
       }
 
       // Fermer le dialog de chargement
@@ -650,7 +644,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: const Text(
-                            'Impossible d\'ouvrir la galerie automatiquement'),
+                          'Impossible d\'ouvrir la galerie automatiquement',
+                        ),
                         action: SnackBarAction(
                           label: 'Paramètres',
                           onPressed: () => DeviceService.openSettings(),
@@ -682,9 +677,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                 children: [
                   const Icon(Icons.settings, color: Colors.white),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(e.message),
-                  ),
+                  Expanded(child: Text(e.message)),
                 ],
               ),
               backgroundColor: Colors.orange,
@@ -706,9 +699,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                 children: [
                   const Icon(Icons.error, color: Colors.white),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(e.message),
-                  ),
+                  Expanded(child: Text(e.message)),
                 ],
               ),
               backgroundColor: Colors.red,
@@ -736,9 +727,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text('Erreur inattendue: $e'),
-                ),
+                Expanded(child: Text('Erreur inattendue: $e')),
               ],
             ),
             backgroundColor: Colors.red,

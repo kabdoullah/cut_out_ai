@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
@@ -7,34 +8,35 @@ import '../services/removebg_service.dart';
 // Configuration Dio avec intercepteurs
 class DioConfig {
   static Dio createDio() {
-    final dio = Dio(BaseOptions(
-      baseUrl: AppConfig.removeBgBaseUrl,
-      connectTimeout: AppConfig.apiTimeout,
-      receiveTimeout: AppConfig.apiTimeout,
-      sendTimeout: AppConfig.apiTimeout,
-      headers: {
-        'User-Agent': '${AppConfig.appName}/${AppConfig.appVersion}',
-      },
-    ));
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: AppConfig.removeBgBaseUrl,
+        connectTimeout: AppConfig.apiTimeout,
+        receiveTimeout: AppConfig.apiTimeout,
+        sendTimeout: AppConfig.apiTimeout,
+        headers: {'User-Agent': '${AppConfig.appName}/${AppConfig.appVersion}'},
+      ),
+    );
 
     // Intercepteur pour les logs
-    dio.interceptors.add(LogInterceptor(
-      requestBody: false, // Ne pas logger les images
-      responseBody: false, // Ne pas logger les images
-      requestHeader: true,
-      responseHeader: true,
-      logPrint: (object) => print('🌐 Remove.bg: $object'),
-    ));
+    dio.interceptors.add(
+      LogInterceptor(
+        requestBody: false, // Ne pas logger les images
+        responseBody: false, // Ne pas logger les images
+        requestHeader: true,
+        responseHeader: true,
+        logPrint: (object) => debugPrint('🌐 Remove.bg: $object'),
+      ),
+    );
 
     // Intercepteur pour retry (moins agressif que pour Hugging Face)
-    dio.interceptors.add(RetryInterceptor(
-      dio: dio,
-      retries: 2,
-      retryDelays: const [
-        Duration(seconds: 2),
-        Duration(seconds: 5),
-      ],
-    ));
+    dio.interceptors.add(
+      RetryInterceptor(
+        dio: dio,
+        retries: 2,
+        retryDelays: const [Duration(seconds: 2), Duration(seconds: 5)],
+      ),
+    );
 
     return dio;
   }
@@ -61,8 +63,9 @@ class RetryInterceptor extends Interceptor {
     if (retryCount < retries && _shouldRetry(err)) {
       extra['retryCount'] = retryCount + 1;
 
-      print(
-          '🔄 Retry ${retryCount + 1}/$retries pour ${err.response?.statusCode}');
+      debugPrint(
+        '🔄 Retry ${retryCount + 1}/$retries pour ${err.response?.statusCode}',
+      );
 
       // Attendre avant de réessayer
       if (retryCount < retryDelays.length) {
@@ -96,13 +99,14 @@ final dioProvider = Provider<Dio>((ref) {
   // Validation de l'API Key
   if (AppConfig.removeBgApiKey.isEmpty) {
     throw Exception(
-        '❌ API Key Remove.bg manquante ! Utilise: flutter run --dart-define=REMOVEBG_API_KEY=ton_api_key');
+      '❌ API Key Remove.bg manquante ! Utilise: flutter run --dart-define=REMOVEBG_API_KEY=ton_api_key',
+    );
   }
 
   final dio = DioConfig.createDio();
 
-  print('✅ Dio configuré pour Remove.bg');
-  print('🌐 Base URL: ${dio.options.baseUrl}');
+  debugPrint('✅ Dio configuré pour Remove.bg');
+  debugPrint('🌐 Base URL: ${dio.options.baseUrl}');
 
   return dio;
 });

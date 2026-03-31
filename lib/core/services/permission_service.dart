@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PermissionService {
-// Vérifier et demander les permissions caméra
+  // Vérifier et demander les permissions caméra
   static Future<bool> requestCameraPermission() async {
     final status = await Permission.camera.request();
     return status.isGranted;
@@ -23,7 +24,7 @@ class PermissionService {
           final newStatus = await Permission.photos.request();
           return newStatus.isGranted;
         } else if (status.isPermanentlyDenied) {
-          print('❌ Permission photos refusée définitivement');
+          debugPrint('❌ Permission photos refusée définitivement');
           return false;
         }
       } else {
@@ -36,14 +37,14 @@ class PermissionService {
           final newStatus = await Permission.storage.request();
           return newStatus.isGranted;
         } else if (status.isPermanentlyDenied) {
-          print('❌ Permission storage refusée définitivement');
+          debugPrint('❌ Permission storage refusée définitivement');
           return false;
         }
       }
 
       return false;
     } catch (e) {
-      print('❌ Erreur lors de la demande de permission galerie: $e');
+      debugPrint('❌ Erreur lors de la demande de permission galerie: $e');
       return false;
     }
   }
@@ -65,11 +66,8 @@ class PermissionService {
         'gallery': galleryStatus.isGranted,
       };
     } catch (e) {
-      print('❌ Erreur lors de la vérification des permissions: $e');
-      return {
-        'camera': false,
-        'gallery': false,
-      };
+      debugPrint('❌ Erreur lors de la vérification des permissions: $e');
+      return {'camera': false, 'gallery': false};
     }
   }
 
@@ -96,14 +94,14 @@ class PermissionService {
         // Log des permissions refusées pour debug
         statuses.forEach((permission, status) {
           if (!status.isGranted) {
-            print('❌ Permission refusée: $permission - Status: $status');
+            debugPrint('❌ Permission refusée: $permission - Status: $status');
           }
         });
       }
 
       return allGranted;
     } catch (e) {
-      print('❌ Erreur lors de la demande des permissions: $e');
+      debugPrint('❌ Erreur lors de la demande des permissions: $e');
       return false;
     }
   }
@@ -111,22 +109,23 @@ class PermissionService {
   // Ouvrir les paramètres si permission refusée définitivement
   static Future<bool> openDeviceSettings() async {
     try {
-      print('📱 Ouverture des paramètres de l\'application...');
+      debugPrint('📱 Ouverture des paramètres de l\'application...');
       return await openAppSettings(); // Fonction globale du package
     } catch (e) {
-      print('❌ Erreur ouverture paramètres: $e');
+      debugPrint('❌ Erreur ouverture paramètres: $e');
       return false;
     }
   }
 
   // Vérifier si une permission est refusée définitivement
   static Future<bool> isPermissionPermanentlyDenied(
-      Permission permission) async {
+    Permission permission,
+  ) async {
     try {
       final status = await permission.status;
       return status.isPermanentlyDenied;
     } catch (e) {
-      print('❌ Erreur vérification permission refusée définitivement: $e');
+      debugPrint('❌ Erreur vérification permission refusée définitivement: $e');
       return false;
     }
   }

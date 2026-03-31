@@ -7,10 +7,7 @@ import '../services/connectivity_service.dart';
 class ConnectivityBanner extends ConsumerWidget {
   final Widget child;
 
-  const ConnectivityBanner({
-    super.key,
-    required this.child,
-  });
+  const ConnectivityBanner({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,14 +17,16 @@ class ConnectivityBanner extends ConsumerWidget {
       data: (status) => _buildWithConnectivityStatus(context, status),
       loading: () => child, // Pas de banner pendant le chargement initial
       error: (error, stack) {
-        print('❌ Erreur connectivity stream: $error');
+        debugPrint('❌ Erreur connectivity stream: $error');
         return child;
       },
     );
   }
 
   Widget _buildWithConnectivityStatus(
-      BuildContext context, ConnectivityStatus status) {
+    BuildContext context,
+    ConnectivityStatus status,
+  ) {
     if (status == ConnectivityStatus.connected) {
       return child; // Pas de banner si connecté
     }
@@ -85,11 +84,7 @@ class ConnectivityBanner extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: textColor,
-                size: 18.sp,
-              ),
+              Icon(icon, color: textColor, size: 18.sp),
               SizedBox(width: 8.w),
               Flexible(
                 child: Text(

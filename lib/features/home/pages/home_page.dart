@@ -52,13 +52,10 @@ class _HomePageState extends ConsumerState<HomePage>
       curve: Curves.easeOutBack,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _heroController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
+        );
   }
 
   void _startAnimations() async {
@@ -136,14 +133,20 @@ class _HomePageState extends ConsumerState<HomePage>
                 animation: _featuresAnimation,
                 builder: (context, child) {
                   return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.4),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _featuresController,
-                      curve:
-                          const Interval(0.4, 1.0, curve: Curves.easeOutBack),
-                    )),
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, 0.4),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _featuresController,
+                            curve: const Interval(
+                              0.4,
+                              1.0,
+                              curve: Curves.easeOutBack,
+                            ),
+                          ),
+                        ),
                     child: FadeTransition(
                       opacity: _featuresAnimation,
                       child: _buildActionButtons(context, stats, ref),
@@ -186,7 +189,7 @@ class _HomePageState extends ConsumerState<HomePage>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.3),
+                    color: colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -230,117 +233,11 @@ class _HomePageState extends ConsumerState<HomePage>
     );
   }
 
-  Widget _buildStatsCard(BuildContext context, ImageStats stats) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      color: colorScheme.primaryContainer,
-      elevation: 2,
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildAnimatedStatItem(
-                context,
-                Icons.photo_library,
-                stats.total.toDouble(),
-                'Images traitées',
-                isPercentage: false,
-              ),
-            ),
-            Container(width: 1, height: 40.h, color: colorScheme.outline),
-            Expanded(
-              child: _buildAnimatedStatItem(
-                context,
-                Icons.check_circle,
-                stats.successRate,
-                'Taux de succès',
-                isPercentage: true,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnimatedStatItem(
-    BuildContext context,
-    IconData icon,
-    double targetValue,
-    String label, {
-    required bool isPercentage,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return AnimatedBuilder(
-      animation: _featuresAnimation,
-      builder: (context, child) {
-        final animatedValue = targetValue * _featuresAnimation.value;
-        final displayValue = isPercentage
-            ? '${animatedValue.toStringAsFixed(0)}%'
-            : '${animatedValue.toInt()}';
-
-        return Column(
-          children: [
-            Icon(icon, color: colorScheme.primary, size: 24.sp),
-            SizedBox(height: 4.h),
-            Text(
-              displayValue,
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildStatItem(
-    BuildContext context,
-    IconData icon,
-    String value,
-    String label,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      children: [
-        Icon(icon, color: colorScheme.primary, size: 24.sp),
-        SizedBox(height: 4.h),
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onPrimaryContainer,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
   Widget _buildActionButtons(
-      BuildContext context, ImageStats stats, WidgetRef ref) {
+    BuildContext context,
+    ImageStats stats,
+    WidgetRef ref,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -443,7 +340,7 @@ class _HomePageState extends ConsumerState<HomePage>
                 Text(
                   description,
                   style: theme.textTheme.caption.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -482,7 +379,7 @@ class _HomePageState extends ConsumerState<HomePage>
       context: context,
       imagePaths: imagePaths,
       onShareComplete: () {
-        print('Partage depuis HomePage terminé');
+        debugPrint('Partage depuis HomePage terminé');
       },
     );
   }

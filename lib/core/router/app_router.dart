@@ -145,19 +145,18 @@ extension AppRouterExtension on BuildContext {
   }
 
   // Méthodes de compatibilité (deprecated - à remplacer progressivement)
-  @deprecated
+  @Deprecated('Use pushToImagePicker() instead.')
   void goToImagePicker() => pushToImagePicker();
 
-  @deprecated
+  @Deprecated('Use pushToGallery() instead.')
   void goToGallery() => pushToGallery();
 
-  @deprecated
+  @Deprecated('Use pushToProcessing() instead.')
   void goToProcessing(String imagePath) => pushToProcessing(imagePath);
 
-  @deprecated
+  @Deprecated('Use pushToResult() instead.')
   void goToResult({
     required String originalPath,
     required String processedPath,
-  }) =>
-      pushToResult(originalPath: originalPath, processedPath: processedPath);
+  }) => pushToResult(originalPath: originalPath, processedPath: processedPath);
 }

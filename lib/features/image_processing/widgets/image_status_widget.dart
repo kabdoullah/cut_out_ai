@@ -6,11 +6,7 @@ class ImageStatusWidget extends StatefulWidget {
   final AppImageStatus status;
   final VoidCallback? onRetry;
 
-  const ImageStatusWidget({
-    super.key,
-    required this.status,
-    this.onRetry,
-  });
+  const ImageStatusWidget({super.key, required this.status, this.onRetry});
 
   @override
   State<ImageStatusWidget> createState() => _ImageStatusWidgetState();
@@ -118,11 +114,7 @@ class _ImageStatusWidgetState extends State<ImageStatusWidget>
     required Color backgroundColor,
     bool isAnimated = false,
   }) {
-    Widget iconWidget = Icon(
-      icon,
-      size: 20.sp,
-      color: color,
-    );
+    Widget iconWidget = Icon(icon, size: 20.sp, color: color);
 
     if (isAnimated) {
       iconWidget = AnimatedBuilder(
@@ -142,10 +134,10 @@ class _ImageStatusWidgetState extends State<ImageStatusWidget>
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -175,22 +167,16 @@ class _ImageStatusWidgetState extends State<ImageStatusWidget>
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.1),
+        color: colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: IconButton(
         onPressed: widget.onRetry,
-        icon: Icon(
-          Icons.refresh,
-          color: colorScheme.primary,
-        ),
+        icon: Icon(Icons.refresh, color: colorScheme.primary),
         iconSize: 20.sp,
         tooltip: 'Réessayer le traitement',
         padding: EdgeInsets.all(8.w),
-        constraints: BoxConstraints(
-          minWidth: 36.w,
-          minHeight: 36.h,
-        ),
+        constraints: BoxConstraints(minWidth: 36.w, minHeight: 36.h),
       ),
     );
   }
@@ -213,10 +199,7 @@ class _ImageStatusWidgetState extends State<ImageStatusWidget>
 class SimpleImageStatusWidget extends StatelessWidget {
   final AppImageStatus status;
 
-  const SimpleImageStatusWidget({
-    super.key,
-    required this.status,
-  });
+  const SimpleImageStatusWidget({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -230,14 +213,14 @@ class SimpleImageStatusWidget extends StatelessWidget {
       ),
       label: Text(
         status.displayName,
-        style: TextStyle(
-          fontSize: 12.sp,
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
       ),
       backgroundColor: _getBackgroundColorForStatus(status, theme.colorScheme),
       side: BorderSide(
-        color: _getColorForStatus(status, theme.colorScheme).withOpacity(0.3),
+        color: _getColorForStatus(
+          status,
+          theme.colorScheme,
+        ).withValues(alpha: 0.3),
       ),
     );
   }
@@ -269,7 +252,9 @@ class SimpleImageStatusWidget extends StatelessWidget {
   }
 
   Color _getBackgroundColorForStatus(
-      AppImageStatus status, ColorScheme colorScheme) {
+    AppImageStatus status,
+    ColorScheme colorScheme,
+  ) {
     switch (status) {
       case AppImageStatus.pending:
         return colorScheme.surfaceContainerHighest;

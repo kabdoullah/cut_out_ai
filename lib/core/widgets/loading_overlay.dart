@@ -8,10 +8,7 @@ import '../models/app_image.dart';
 class LoadingOverlay extends ConsumerWidget {
   final Widget child;
 
-  const LoadingOverlay({
-    super.key,
-    required this.child,
-  });
+  const LoadingOverlay({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,7 +20,7 @@ class LoadingOverlay extends ConsumerWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             child: Center(
               child: Card(
                 child: Padding(

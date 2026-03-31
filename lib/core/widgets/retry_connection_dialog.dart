@@ -22,11 +22,7 @@ class _RetryConnectionDialogState extends ConsumerState<RetryConnectionDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(
-            Icons.wifi_off,
-            color: colorScheme.error,
-            size: 24.sp,
-          ),
+          Icon(Icons.wifi_off, color: colorScheme.error, size: 24.sp),
           SizedBox(width: 12.w),
           const Text('Pas de connexion'),
         ],

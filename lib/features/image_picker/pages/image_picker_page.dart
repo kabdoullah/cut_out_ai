@@ -8,8 +8,7 @@ import '../../../core/models/app_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/services/rate_limit_service.dart';
-import '../../../core/ads/ad_providers.dart';
-import '../../../core/widgets/retry_connection_dialog.dart';
+
 import '../../image_processing/providers/image_view_model.dart';
 import '../widgets/permission_dialog.dart';
 
@@ -68,7 +67,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
             Text(
               'L\'intelligence artificielle va analyser ton image et supprimer automatiquement l\'arrière-plan.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -82,8 +81,11 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.lock_clock,
-                        color: colorScheme.error, size: 20.sp),
+                    Icon(
+                      Icons.lock_clock,
+                      color: colorScheme.error,
+                      size: 20.sp,
+                    ),
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
@@ -97,13 +99,12 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                   ],
                 ),
               ),
-              SizedBox(height: 12.h),
-              _buildRewardedAdButton(context),
+
             ] else
               Text(
                 '$remaining/${AppConfig.dailyRequestLimit} requête${remaining > 1 ? 's' : ''} disponible${remaining > 1 ? 's' : ''} aujourd\'hui',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -159,7 +160,9 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                           child: Text(
                             'Astuce : Les images avec des contours nets donnent de meilleurs résultats !',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.8),
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                           ),
                         ),
@@ -173,80 +176,6 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildRewardedAdButton(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final adReady = ref.watch(rewardedAdProvider) != null;
-
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.4)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(Icons.play_circle_outline,
-                  color: colorScheme.primary, size: 24.sp),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Text(
-                  'Regarder une publicité pour débloquer 1 requête',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: adReady ? () => _watchRewardedAd(context) : null,
-              icon: const Icon(Icons.ondemand_video),
-              label: Text(adReady ? 'Regarder la pub' : 'Chargement...'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _watchRewardedAd(BuildContext context) async {
-    final shown = ref.read(rewardedAdProvider.notifier).tryShow(
-      onRewarded: () async {
-        await ref.read(rateLimitServiceProvider).grantExtraRequest();
-        ref.invalidate(remainingRequestsProvider);
-        if (!mounted) return;
-        ScaffoldMessenger.of(this.context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('1 requête supplémentaire débloquée !'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      },
-    );
-    if (!shown && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Publicité non disponible, réessayez dans un moment.'),
-        ),
-      );
-    }
   }
 
   Widget _buildSourceButton({
@@ -273,7 +202,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
               Container(
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: isLoading
@@ -285,11 +214,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                           valueColor: AlwaysStoppedAnimation<Color>(color),
                         ),
                       )
-                    : Icon(
-                        icon,
-                        size: 32.sp,
-                        color: color,
-                      ),
+                    : Icon(icon, size: 32.sp, color: color),
               ),
               SizedBox(width: 20.w),
               Expanded(
@@ -301,7 +226,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: isLoading
-                            ? theme.colorScheme.onSurface.withOpacity(0.5)
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
                             : null,
                       ),
                     ),
@@ -309,7 +234,9 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                   ],
@@ -319,7 +246,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16.sp,
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
             ],
           ),
@@ -382,10 +309,9 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
         final imageName = 'CutOut_${DateTime.now().millisecondsSinceEpoch}';
 
         // Démarrer le traitement via le ViewModel
-        await ref.read(imageViewModelProvider.notifier).processImage(
-              image.path,
-              imageName,
-            );
+        await ref
+            .read(imageViewModelProvider.notifier)
+            .processImage(image.path, imageName);
       }
     } catch (e) {
       // Afficher l'erreur

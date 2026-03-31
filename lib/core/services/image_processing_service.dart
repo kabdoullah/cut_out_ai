@@ -13,8 +13,8 @@ class ImageProcessingService {
   ImageProcessingService({
     required RemoveBgService removeBgService,
     required FileService fileService,
-  })  : _removeBgService = removeBgService,
-        _fileService = fileService;
+  }) : _removeBgService = removeBgService,
+       _fileService = fileService;
 
   Future<String> removeBackground(String imagePath) async {
     try {

@@ -1,13 +1,15 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 class GalleryService {
   // Sauvegarder une image dans la galerie système
-  static Future<bool> saveImageToGallery(String imagePath,
-      {String? albumName}) async {
+  static Future<bool> saveImageToGallery(
+    String imagePath, {
+    String? albumName,
+  }) async {
     try {
       // 1. Vérifier les permissions
       final hasPermission = await _checkStoragePermission();
@@ -24,10 +26,10 @@ class GalleryService {
       // 3. Sauvegarder avec Gal (plus moderne et maintenu)
       await Gal.putImage(imagePath, album: albumName ?? 'CutOut AI');
 
-      print('📸 Image sauvegardée avec succès dans la galerie');
+      debugPrint('📸 Image sauvegardée avec succès dans la galerie');
       return true;
     } catch (e) {
-      print('❌ Erreur sauvegarde galerie: $e');
+      debugPrint('❌ Erreur sauvegarde galerie: $e');
       if (e is GalleryException) {
         rethrow;
       } else {
@@ -37,8 +39,10 @@ class GalleryService {
   }
 
   // Sauvegarder des bytes directement
-  static Future<bool> saveImageBytesToGallery(Uint8List imageBytes,
-      {String? name}) async {
+  static Future<bool> saveImageBytesToGallery(
+    Uint8List imageBytes, {
+    String? name,
+  }) async {
     try {
       // 1. Vérifier les permissions
       final hasPermission = await _checkStoragePermission();
@@ -55,10 +59,10 @@ class GalleryService {
       // 4. Nettoyer le fichier temporaire
       await tempFile.delete();
 
-      print('📸 Image (bytes) sauvegardée avec succès dans la galerie');
+      debugPrint('📸 Image (bytes) sauvegardée avec succès dans la galerie');
       return true;
     } catch (e) {
-      print('❌ Erreur sauvegarde galerie (bytes): $e');
+      debugPrint('❌ Erreur sauvegarde galerie (bytes): $e');
       if (e is GalleryException) {
         rethrow;
       } else {
@@ -69,7 +73,9 @@ class GalleryService {
 
   // Créer un fichier temporaire pour les bytes
   static Future<File> _createTempFile(
-      Uint8List imageBytes, String? name) async {
+    Uint8List imageBytes,
+    String? name,
+  ) async {
     final tempDir = Directory.systemTemp;
     final fileName = name ?? _generateImageName();
     final tempFile = File('${tempDir.path}/$fileName.png');
@@ -84,46 +90,47 @@ class GalleryService {
       // 1. D'abord essayer avec Gal (méthode recommandée)
       final hasGalAccess = await Gal.hasAccess();
       if (hasGalAccess) {
-        print('✅ Accès galerie déjà accordé via Gal');
+        debugPrint('✅ Accès galerie déjà accordé via Gal');
         return true;
       }
 
-      print('📱 Demande d\'accès galerie via Gal...');
+      debugPrint('📱 Demande d\'accès galerie via Gal...');
       final galAccessGranted = await Gal.requestAccess();
       if (galAccessGranted) {
-        print('✅ Accès galerie accordé via Gal');
+        debugPrint('✅ Accès galerie accordé via Gal');
         return true;
       }
 
       // 2. Si Gal échoue, utiliser permission_handler comme fallback
-      print(
-          '⚠️ Gal n\'a pas pu obtenir l\'accès, fallback vers permission_handler');
+      debugPrint(
+        '⚠️ Gal n\'a pas pu obtenir l\'accès, fallback vers permission_handler',
+      );
 
       if (Platform.isAndroid) {
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;
         final sdkInt = androidInfo.version.sdkInt;
 
-        print('📱 Version Android détectée: API $sdkInt');
+        debugPrint('📱 Version Android détectée: API $sdkInt');
 
         if (sdkInt >= 33) {
           // Android 13+ (API 33+) : Permission photos
-          print('📱 Android 13+ détecté - Utilisation permission photos');
+          debugPrint('📱 Android 13+ détecté - Utilisation permission photos');
           return await _requestAndroidPhotosPermission();
         } else {
           // Android < 13 : Permission storage
-          print('📱 Android < 13 détecté - Utilisation permission storage');
+          debugPrint('📱 Android < 13 détecté - Utilisation permission storage');
           return await _requestAndroidStoragePermission();
         }
       } else if (Platform.isIOS) {
         // iOS : Permission photos
-        print('📱 iOS détecté - Utilisation permission photos');
+        debugPrint('📱 iOS détecté - Utilisation permission photos');
         return await _requestIOSPhotosPermission();
       }
 
       return false;
     } catch (e) {
-      print('❌ Erreur permissions stockage: $e');
+      debugPrint('❌ Erreur permissions stockage: $e');
       // Dernier fallback : essayer storage directement
       return await _requestAndroidStoragePermission();
     }
@@ -140,19 +147,23 @@ class GalleryService {
       if (newStatus.isGranted) {
         return true;
       } else if (newStatus.isPermanentlyDenied) {
-        print(
-            '❌ Permission photos refusée définitivement - Redirection vers paramètres');
+        debugPrint(
+          '❌ Permission photos refusée définitivement - Redirection vers paramètres',
+        );
         throw GalleryException(
-            'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.');
+          'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.',
+        );
       } else {
-        print('❌ Permission photos refusée');
+        debugPrint('❌ Permission photos refusée');
         throw GalleryException('Permission d\'accès aux photos refusée');
       }
     } else if (status.isPermanentlyDenied) {
-      print(
-          '❌ Permission photos refusée définitivement - Redirection vers paramètres');
+      debugPrint(
+        '❌ Permission photos refusée définitivement - Redirection vers paramètres',
+      );
       throw GalleryException(
-          'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.');
+        'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès aux photos.',
+      );
     }
 
     return false;
@@ -169,19 +180,23 @@ class GalleryService {
       if (newStatus.isGranted) {
         return true;
       } else if (newStatus.isPermanentlyDenied) {
-        print(
-            '❌ Permission storage refusée définitivement - Redirection vers paramètres');
+        debugPrint(
+          '❌ Permission storage refusée définitivement - Redirection vers paramètres',
+        );
         throw GalleryException(
-            'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.');
+          'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.',
+        );
       } else {
-        print('❌ Permission storage refusée');
+        debugPrint('❌ Permission storage refusée');
         throw GalleryException('Permission d\'accès au stockage refusée');
       }
     } else if (status.isPermanentlyDenied) {
-      print(
-          '❌ Permission storage refusée définitivement - Redirection vers paramètres');
+      debugPrint(
+        '❌ Permission storage refusée définitivement - Redirection vers paramètres',
+      );
       throw GalleryException(
-          'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.');
+        'Permission refusée définitivement. Allez dans Paramètres > Applications > CutOut AI > Autorisations pour activer l\'accès au stockage.',
+      );
     }
 
     return false;
@@ -198,37 +213,26 @@ class GalleryService {
       if (newStatus.isGranted) {
         return true;
       } else if (newStatus.isPermanentlyDenied) {
-        print(
-            '❌ Permission photos iOS refusée définitivement - Redirection vers paramètres');
+        debugPrint(
+          '❌ Permission photos iOS refusée définitivement - Redirection vers paramètres',
+        );
         throw GalleryException(
-            'Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.');
+          'Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.',
+        );
       } else {
-        print('❌ Permission photos iOS refusée');
+        debugPrint('❌ Permission photos iOS refusée');
         throw GalleryException('Permission d\'accès aux photos refusée');
       }
     } else if (status.isPermanentlyDenied) {
-      print(
-          '❌ Permission photos iOS refusée définitivement - Redirection vers paramètres');
+      debugPrint(
+        '❌ Permission photos iOS refusée définitivement - Redirection vers paramètres',
+      );
       throw GalleryException(
-          'Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.');
+        'Permission refusée définitivement. Allez dans Réglages > Confidentialité > Photos pour autoriser CutOut AI.',
+      );
     }
 
     return false;
-  }
-
-  // Obtenir la version Android avec device_info_plus
-  static Future<int> _getAndroidVersion() async {
-    try {
-      if (Platform.isAndroid) {
-        final deviceInfo = DeviceInfoPlugin();
-        final androidInfo = await deviceInfo.androidInfo;
-        return androidInfo.version.sdkInt;
-      }
-      return 0;
-    } catch (e) {
-      print('❌ Erreur obtention version Android: $e');
-      return 30; // Fallback vers Android 11
-    }
   }
 
   // Générer un nom unique pour l'image
@@ -245,7 +249,7 @@ class GalleryService {
       final hasAccess = await Gal.hasAccess();
       return hasAccess ? 'Galerie système' : null;
     } catch (e) {
-      print('❌ Impossible de vérifier l\'accès galerie: $e');
+      debugPrint('❌ Impossible de vérifier l\'accès galerie: $e');
       return null;
     }
   }
@@ -255,7 +259,7 @@ class GalleryService {
     try {
       return await Gal.hasAccess();
     } catch (e) {
-      print('❌ Erreur vérification accès galerie: $e');
+      debugPrint('❌ Erreur vérification accès galerie: $e');
       return false;
     }
   }
@@ -265,7 +269,7 @@ class GalleryService {
     try {
       return await Gal.requestAccess();
     } catch (e) {
-      print('❌ Erreur demande accès galerie: $e');
+      debugPrint('❌ Erreur demande accès galerie: $e');
       return false;
     }
   }

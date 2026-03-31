@@ -25,11 +25,7 @@ class PermissionDialog extends StatelessWidget {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(
-            icon,
-            color: colorScheme.primary,
-            size: 24.sp,
-          ),
+          Icon(icon, color: colorScheme.primary, size: 24.sp),
           SizedBox(width: 12.w),
           Text(title),
         ],
@@ -75,8 +71,9 @@ class PermissionDialog extends StatelessWidget {
         FilledButton(
           onPressed: () async {
             final navigator = Navigator.of(context); // ✅ Capturer avant l'async
-            final messenger =
-                ScaffoldMessenger.of(context); // ✅ Capturer avant l'async
+            final messenger = ScaffoldMessenger.of(
+              context,
+            ); // ✅ Capturer avant l'async
 
             navigator.pop(); // Fermer le dialog d'abord
 
@@ -84,8 +81,8 @@ class PermissionDialog extends StatelessWidget {
             if (granted) {
               onGranted();
             } else {
-              // Utiliser les références capturées
-              _showSettingsDialog(context, navigator, messenger);
+              // Utiliser les références capturées (pas de context après await)
+              _showSettingsDialogWithNavigator(navigator, messenger);
             }
           },
           child: const Text('Autoriser'),
@@ -102,65 +99,64 @@ class PermissionDialog extends StatelessWidget {
     }
   }
 
-  void _showSettingsDialog(BuildContext context, NavigatorState navigator,
-      ScaffoldMessengerState messenger) {
-    // Vérifier si le widget est encore monté
-    if (!context.mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Permission refusée'),
-        content: const Text(
-          'Pour utiliser cette fonctionnalité, veuillez autoriser l\'accès dans les paramètres de votre appareil.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
+  void _showSettingsDialogWithNavigator(
+    NavigatorState navigator,
+    ScaffoldMessengerState messenger,
+  ) {
+    navigator.push(
+      DialogRoute(
+        context: navigator.context,
+        builder: (context) => AlertDialog(
+          title: const Text('Permission refusée'),
+          content: const Text(
+            'Pour utiliser cette fonctionnalité, veuillez autoriser l\'accès dans les paramètres de votre appareil.',
           ),
-          FilledButton(
-            onPressed: () async {
-              final dialogNavigator =
-                  Navigator.of(context); // Capturer avant async
-
-              dialogNavigator.pop(); // Fermer le dialog
-
-              try {
-                final opened = await PermissionService.openDeviceSettings();
-
-                if (opened) {
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annuler'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final dialogNavigator = Navigator.of(context);
+                dialogNavigator.pop();
+                try {
+                  final opened = await PermissionService.openDeviceSettings();
+                  if (opened) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Paramètres ouverts. Revenez dans l\'app après avoir activé les permissions.',
+                        ),
+                        duration: Duration(seconds: 4),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  } else {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Impossible d\'ouvrir les paramètres automatiquement. Allez manuellement dans Paramètres > Applications > CutOut AI > Autorisations.',
+                        ),
+                        duration: Duration(seconds: 6),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  }
+                } catch (e) {
                   messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Paramètres ouverts. Revenez dans l\'app après avoir activé les permissions.'),
-                      duration: Duration(seconds: 4),
-                      backgroundColor: Colors.blue,
-                    ),
-                  );
-                } else {
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Impossible d\'ouvrir les paramètres automatiquement. Allez manuellement dans Paramètres > Applications > CutOut AI > Autorisations.'),
-                      duration: Duration(seconds: 6),
-                      backgroundColor: Colors.orange,
+                    SnackBar(
+                      content: Text('Erreur: $e'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
                     ),
                   );
                 }
-              } catch (e) {
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text('Erreur: $e'),
-                    backgroundColor: Colors.red,
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              }
-            },
-            child: const Text('Paramètres'),
-          ),
-        ],
+              },
+              child: const Text('Paramètres'),
+            ),
+          ],
+        ),
       ),
     );
   }

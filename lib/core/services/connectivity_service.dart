@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 enum ConnectivityStatus { connected, disconnected, checking }
@@ -53,13 +54,13 @@ class ConnectivityService {
 
       _updateStatus(status);
     } catch (e) {
-      print('❌ Erreur vérification connexion initiale: $e');
+      debugPrint('❌ Erreur vérification connexion initiale: $e');
       _updateStatus(ConnectivityStatus.disconnected);
     }
   }
 
   void _handleConnectivityChange(List<ConnectivityResult> results) {
-    print('📡 Changement connectivité: $results');
+    debugPrint('📡 Changement connectivité: $results');
 
     // Si aucune connectivité, on est déconnecté
     if (results.contains(ConnectivityResult.none)) {
@@ -72,12 +73,12 @@ class ConnectivityService {
   }
 
   void _handleInternetStatusChange(InternetConnectionStatus status) {
-    print('🌐 Changement internet: $status');
+    debugPrint('🌐 Changement internet: $status');
 
     final ConnectivityStatus newStatus =
         status == InternetConnectionStatus.connected
-            ? ConnectivityStatus.connected
-            : ConnectivityStatus.disconnected;
+        ? ConnectivityStatus.connected
+        : ConnectivityStatus.disconnected;
 
     _updateStatus(newStatus);
   }
@@ -93,7 +94,7 @@ class ConnectivityService {
 
       _updateStatus(status);
     } catch (e) {
-      print('❌ Erreur vérification internet: $e');
+      debugPrint('❌ Erreur vérification internet: $e');
       _updateStatus(ConnectivityStatus.disconnected);
     }
   }
@@ -103,7 +104,7 @@ class ConnectivityService {
       _lastStatus = status;
       _controller?.add(status);
 
-      print('📊 Statut connexion: ${_getStatusString(status)}');
+      debugPrint('📊 Statut connexion: ${_getStatusString(status)}');
     }
   }
 
@@ -131,7 +132,7 @@ class ConnectivityService {
       _updateStatus(status);
       return hasInternet;
     } catch (e) {
-      print('❌ Erreur check connexion: $e');
+      debugPrint('❌ Erreur check connexion: $e');
       _updateStatus(ConnectivityStatus.disconnected);
       return false;
     }

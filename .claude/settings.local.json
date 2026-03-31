@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter build appbundle --dart-define-from-file=.env.json --verbose)"
+      "Bash(flutter build appbundle --dart-define-from-file=.env.json --verbose)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }

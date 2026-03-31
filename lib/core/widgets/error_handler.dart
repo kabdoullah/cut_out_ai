@@ -6,14 +6,11 @@ import '../../features/image_processing/providers/image_view_model.dart';
 class ErrorHandler extends ConsumerWidget {
   final Widget child;
 
-  const ErrorHandler({
-    super.key,
-    required this.child,
-  });
+  const ErrorHandler({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final error = ref.watch(errorProvider);
+    ref.watch(errorProvider);
 
     // Écouter les changements d'erreur
     ref.listen<String?>(errorProvider, (previous, next) {

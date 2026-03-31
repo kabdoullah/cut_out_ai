@@ -94,7 +94,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
       body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height -
+            minHeight:
+                MediaQuery.of(context).size.height -
                 MediaQuery.of(context).padding.top -
                 kToolbarHeight,
           ),
@@ -126,7 +127,9 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withOpacity(0.4),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.4,
+                                ),
                                 blurRadius: 30,
                                 spreadRadius: 10,
                               ),
@@ -150,8 +153,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                     status: currentImage.status,
                     onRetry: currentImage.status.isFailed
                         ? () => ref
-                            .read(imageViewModelProvider.notifier)
-                            .retryProcessing(currentImage.id)
+                              .read(imageViewModelProvider.notifier)
+                              .retryProcessing(currentImage.id)
                         : null,
                   ),
                   SizedBox(height: 24.h),
@@ -160,7 +163,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                 // Texte principal
                 Text(
                   _getStatusText(
-                      currentImage?.status ?? AppImageStatus.processing),
+                    currentImage?.status ?? AppImageStatus.processing,
+                  ),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
@@ -172,9 +176,10 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                 // Sous-texte
                 Text(
                   _getSubText(
-                      currentImage?.status ?? AppImageStatus.processing),
+                    currentImage?.status ?? AppImageStatus.processing,
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -212,8 +217,12 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildStep(context, Icons.upload, 'Envoi', true),
-            _buildStep(context, Icons.psychology, 'IA',
-                currentImage?.status.isProcessing == true),
+            _buildStep(
+              context,
+              Icons.psychology,
+              'IA',
+              currentImage?.status.isProcessing == true,
+            ),
             _buildStep(context, Icons.download, 'Réception', false),
           ],
         ),
@@ -222,7 +231,11 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
   }
 
   Widget _buildStep(
-      BuildContext context, IconData icon, String label, bool isActive) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    bool isActive,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -240,7 +253,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
             icon,
             color: isActive
                 ? colorScheme.onPrimary
-                : colorScheme.onSurface.withOpacity(0.5),
+                : colorScheme.onSurface.withValues(alpha: 0.5),
             size: 20.sp,
           ),
         ),
@@ -250,7 +263,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
           style: theme.textTheme.bodySmall?.copyWith(
             color: isActive
                 ? colorScheme.primary
-                : colorScheme.onSurface.withOpacity(0.5),
+                : colorScheme.onSurface.withValues(alpha: 0.5),
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -270,11 +283,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.image,
-            color: colorScheme.primary,
-            size: 24.sp,
-          ),
+          Icon(Icons.image, color: colorScheme.primary, size: 24.sp),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -289,7 +298,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                 Text(
                   'Traitement IA en cours',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -355,8 +364,9 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
               Navigator.of(context).pop();
               ref.read(imageViewModelProvider.notifier).clearError();
               // Relancer automatiquement si possible
-              final currentImage =
-                  ref.read(imageViewModelProvider).currentImage;
+              final currentImage = ref
+                  .read(imageViewModelProvider)
+                  .currentImage;
               if (currentImage != null) {
                 ref
                     .read(imageViewModelProvider.notifier)

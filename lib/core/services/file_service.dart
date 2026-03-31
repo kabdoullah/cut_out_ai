@@ -21,7 +21,9 @@ class FileService {
 
   // Sauvegarder une image traitée localement
   Future<String> saveProcessedImage(
-      Uint8List imageData, String originalName) async {
+    Uint8List imageData,
+    String originalName,
+  ) async {
     try {
       final appDir = await _appDirectory;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -80,7 +82,9 @@ class FileService {
 
   // Appliquer une couleur de fond sur un PNG transparent
   Future<Uint8List> applyBackgroundColor(
-      String imagePath, Color backgroundColor) async {
+    String imagePath,
+    Color backgroundColor,
+  ) async {
     try {
       final bytes = await File(imagePath).readAsBytes();
 
@@ -101,8 +105,9 @@ class FileService {
       canvas.drawImage(uiImage, Offset.zero, Paint());
 
       final composited = await recorder.endRecording().toImage(w, h);
-      final byteData =
-          await composited.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await composited.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       uiImage.dispose();
       composited.dispose();
@@ -110,7 +115,8 @@ class FileService {
       return byteData!.buffer.asUint8List();
     } catch (e) {
       throw FileServiceException(
-          'Impossible d\'appliquer la couleur de fond: $e');
+        'Impossible d\'appliquer la couleur de fond: $e',
+      );
     }
   }
 

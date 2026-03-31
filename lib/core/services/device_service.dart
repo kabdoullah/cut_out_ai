@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DeviceService {
@@ -32,7 +33,7 @@ class DeviceService {
 
       return false;
     } catch (e) {
-      print('❌ Erreur ouverture galerie: $e');
+      debugPrint('❌ Erreur ouverture galerie: $e');
       return false;
     }
   }
@@ -66,7 +67,7 @@ class DeviceService {
 
       return false;
     } catch (e) {
-      print('❌ Erreur fallback Android: $e');
+      debugPrint('❌ Erreur fallback Android: $e');
       return false;
     }
   }
@@ -78,15 +79,12 @@ class DeviceService {
       final Uri uri = Uri.parse(iosUrl);
 
       if (await canLaunchUrl(uri)) {
-        return await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
 
       return false;
     } catch (e) {
-      print('❌ Erreur fallback iOS: $e');
+      debugPrint('❌ Erreur fallback iOS: $e');
       return false;
     }
   }
@@ -112,7 +110,7 @@ class DeviceService {
 
       return false;
     } catch (e) {
-      print('❌ Erreur ouverture paramètres: $e');
+      debugPrint('❌ Erreur ouverture paramètres: $e');
       return false;
     }
   }
@@ -132,7 +130,7 @@ class DeviceService {
 
       return false;
     } catch (e) {
-      print('❌ Erreur ouverture gestionnaire fichiers: $e');
+      debugPrint('❌ Erreur ouverture gestionnaire fichiers: $e');
       return false;
     }
   }
@@ -143,15 +141,12 @@ class DeviceService {
       final Uri uri = Uri.parse(url);
 
       if (await canLaunchUrl(uri)) {
-        return await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
 
       return false;
     } catch (e) {
-      print('❌ Erreur ouverture URL: $e');
+      debugPrint('❌ Erreur ouverture URL: $e');
       return false;
     }
   }
@@ -169,7 +164,7 @@ class DeviceService {
 
       return false;
     } catch (e) {
-      print('❌ Erreur partage texte: $e');
+      debugPrint('❌ Erreur partage texte: $e');
       return false;
     }
   }

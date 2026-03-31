@@ -21,7 +21,7 @@ class ShareService {
         throw ShareException('Fichier image introuvable: $imagePath');
       }
 
-      print('📤 Partage image: ${file.path}');
+      debugPrint('📤 Partage image: ${file.path}');
 
       // Créer XFile pour le partage
       final xFile = XFile(imagePath, name: _generateFileName(imagePath));
@@ -37,10 +37,10 @@ class ShareService {
         sharePositionOrigin: sharePositionOrigin,
       );
 
-      print('✅ Partage réussi: ${result.status}');
+      debugPrint('✅ Partage réussi: ${result.status}');
       return result;
     } catch (e) {
-      print('❌ Erreur partage image: $e');
+      debugPrint('❌ Erreur partage image: $e');
       if (e is ShareException) {
         rethrow;
       } else {
@@ -61,7 +61,7 @@ class ShareService {
         throw ShareException('Aucune image à partager');
       }
 
-      print('Partage ${imagePaths.length} images');
+      debugPrint('Partage ${imagePaths.length} images');
 
       // Créer XFiles pour toutes les images
       final xFiles = <XFile>[];
@@ -70,7 +70,7 @@ class ShareService {
         if (file.existsSync()) {
           xFiles.add(XFile(path, name: _generateFileName(path)));
         } else {
-          print('Image ignorée (introuvable): $path');
+          debugPrint('Image ignorée (introuvable): $path');
         }
       }
 
@@ -89,10 +89,10 @@ class ShareService {
         sharePositionOrigin: sharePositionOrigin,
       );
 
-      print('Partage multiple réussi: ${result.status}');
+      debugPrint('Partage multiple réussi: ${result.status}');
       return result;
     } catch (e) {
-      print('Erreur partage multiple: $e');
+      debugPrint('Erreur partage multiple: $e');
       if (e is ShareException) {
         rethrow;
       } else {
@@ -109,7 +109,7 @@ class ShareService {
     Rect? sharePositionOrigin,
   }) async {
     try {
-      print('📤 Partage avant/après');
+      debugPrint('📤 Partage avant/après');
 
       // Vérifier les deux images
       final originalFile = File(originalPath);
@@ -139,10 +139,10 @@ class ShareService {
         sharePositionOrigin: sharePositionOrigin,
       );
 
-      print('✅ Partage avant/après réussi: ${result.status}');
+      debugPrint('✅ Partage avant/après réussi: ${result.status}');
       return result;
     } catch (e) {
-      print('❌ Erreur partage avant/après: $e');
+      debugPrint('❌ Erreur partage avant/après: $e');
       if (e is ShareException) {
         rethrow;
       } else {
@@ -161,7 +161,7 @@ class ShareService {
     Rect? sharePositionOrigin,
   }) async {
     try {
-      print('📤 Partage image depuis bytes: $fileName');
+      debugPrint('📤 Partage image depuis bytes: $fileName');
 
       // Créer un fichier temporaire
       final tempFile = await _createTempFileFromBytes(imageBytes, fileName);
@@ -179,7 +179,7 @@ class ShareService {
 
       return result;
     } catch (e) {
-      print('❌ Erreur partage bytes: $e');
+      debugPrint('❌ Erreur partage bytes: $e');
       if (e is ShareException) {
         rethrow;
       } else {
@@ -195,8 +195,9 @@ class ShareService {
     Rect? sharePositionOrigin,
   }) async {
     try {
-      print(
-          '📤 Partage texte: ${text.substring(0, text.length > 50 ? 50 : text.length)}...');
+      debugPrint(
+        '📤 Partage texte: ${text.substring(0, text.length > 50 ? 50 : text.length)}...',
+      );
 
       final result = await Share.share(
         text,
@@ -204,10 +205,10 @@ class ShareService {
         sharePositionOrigin: sharePositionOrigin,
       );
 
-      print('Partage texte réussi: ${result.status}');
+      debugPrint('Partage texte réussi: ${result.status}');
       return result;
     } catch (e) {
-      print('Erreur partage texte: $e');
+      debugPrint('Erreur partage texte: $e');
       throw ShareException('Erreur lors du partage de texte: $e');
     }
   }
@@ -236,7 +237,9 @@ class ShareService {
   }
 
   static Future<File> _createTempFileFromBytes(
-      Uint8List bytes, String fileName) async {
+    Uint8List bytes,
+    String fileName,
+  ) async {
     final tempDir = await getTemporaryDirectory();
     final tempFile = File('${tempDir.path}/$fileName');
     await tempFile.writeAsBytes(bytes);
@@ -260,8 +263,6 @@ class ShareService {
         return 'Partage annulé';
       case ShareResultStatus.unavailable:
         return 'Partage non disponible sur cette plateforme';
-      default:
-        return 'Statut de partage inconnu';
     }
   }
 }
@@ -281,13 +282,7 @@ class ShareException implements Exception {
 }
 
 // Enum pour les options de partage
-enum ShareOption {
-  imageOnly,
-  imageWithText,
-  beforeAfter,
-  textOnly,
-  multiple,
-}
+enum ShareOption { imageOnly, imageWithText, beforeAfter, textOnly, multiple }
 
 // Classe pour configurer les options de partage
 class ShareConfig {
@@ -304,23 +299,14 @@ class ShareConfig {
   });
 
   factory ShareConfig.imageOnly({String? customText}) {
-    return ShareConfig(
-      option: ShareOption.imageOnly,
-      customText: customText,
-    );
+    return ShareConfig(option: ShareOption.imageOnly, customText: customText);
   }
 
   factory ShareConfig.beforeAfter({String? customText}) {
-    return ShareConfig(
-      option: ShareOption.beforeAfter,
-      customText: customText,
-    );
+    return ShareConfig(option: ShareOption.beforeAfter, customText: customText);
   }
 
   factory ShareConfig.multiple({String? customText}) {
-    return ShareConfig(
-      option: ShareOption.multiple,
-      customText: customText,
-    );
+    return ShareConfig(option: ShareOption.multiple, customText: customText);
   }
 }

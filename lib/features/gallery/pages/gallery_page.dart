@@ -6,7 +6,6 @@ import '../../../core/models/app_image.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../../image_processing/providers/image_view_model.dart';
-import '../../../core/ads/banner_ad_widget.dart';
 
 class GalleryPage extends ConsumerWidget {
   const GalleryPage({super.key});
@@ -55,8 +54,8 @@ class GalleryPage extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : completedImages.isEmpty
-              ? _buildEmptyState(context)
-              : _buildGalleryGrid(context, completedImages),
+          ? _buildEmptyState(context)
+          : _buildGalleryGrid(context, completedImages),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.pushToImagePicker(),
         child: const Icon(Icons.add_photo_alternate),
@@ -77,7 +76,7 @@ class GalleryPage extends ConsumerWidget {
             Icon(
               Icons.photo_library_outlined,
               size: 96.sp,
-              color: colorScheme.onSurface.withOpacity(0.3),
+              color: colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             SizedBox(height: 24.h),
             Text(
@@ -91,7 +90,7 @@ class GalleryPage extends ConsumerWidget {
             Text(
               'Tes images traitées par l\'intelligence artificielle apparaîtront ici.\nCommence par créer ta première image !',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -110,7 +109,6 @@ class GalleryPage extends ConsumerWidget {
   Widget _buildGalleryGrid(BuildContext context, List<AppImage> images) {
     return Column(
       children: [
-        const Center(child: BannerAdWidget()),
         Expanded(
           child: GridView.builder(
             padding: EdgeInsets.all(16.w),
@@ -156,7 +154,9 @@ class GalleryPage extends ConsumerWidget {
                       right: 8.w,
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 6.w, vertical: 2.h),
+                          horizontal: 6.w,
+                          vertical: 2.h,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(8.r),
@@ -189,7 +189,7 @@ class GalleryPage extends ConsumerWidget {
                   Text(
                     _formatDate(image.createdAt),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -254,9 +254,9 @@ class GalleryPage extends ConsumerWidget {
   // Partager plusieurs images
   void _shareMultipleImages(BuildContext context, List<AppImage> images) {
     if (images.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune image à partager')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Aucune image à partager')));
       return;
     }
 
@@ -277,7 +277,7 @@ class GalleryPage extends ConsumerWidget {
       context: context,
       imagePaths: imagePaths,
       onShareComplete: () {
-        print('Partage multiple terminé depuis GalleryPage');
+        debugPrint('Partage multiple terminé depuis GalleryPage');
       },
     );
   }
@@ -301,10 +301,9 @@ class GalleryPage extends ConsumerWidget {
               width: 40.w,
               height: 4.h,
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurfaceVariant
-                    .withOpacity(0.4),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
@@ -314,9 +313,9 @@ class GalleryPage extends ConsumerWidget {
               padding: EdgeInsets.all(20.w),
               child: Text(
                 image.name,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -328,8 +327,10 @@ class GalleryPage extends ConsumerWidget {
                 children: [
                   // Voir l'image
                   ListTile(
-                    leading: Icon(Icons.visibility,
-                        color: Theme.of(context).colorScheme.primary),
+                    leading: Icon(
+                      Icons.visibility,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     title: const Text('Voir'),
                     onTap: () {
                       Navigator.of(context).pop();
@@ -340,8 +341,10 @@ class GalleryPage extends ConsumerWidget {
                   // Partager
                   if (image.processedPath != null)
                     ListTile(
-                      leading: Icon(Icons.share,
-                          color: Theme.of(context).colorScheme.primary),
+                      leading: Icon(
+                        Icons.share,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       title: const Text('Partager'),
                       onTap: () {
                         Navigator.of(context).pop();
@@ -349,7 +352,7 @@ class GalleryPage extends ConsumerWidget {
                           context: context,
                           imagePath: image.processedPath!,
                           onShareComplete: () {
-                            print('✅ Partage individuel terminé');
+                            debugPrint('✅ Partage individuel terminé');
                           },
                         );
                       },
@@ -357,8 +360,10 @@ class GalleryPage extends ConsumerWidget {
 
                   // Supprimer
                   ListTile(
-                    leading: Icon(Icons.delete,
-                        color: Theme.of(context).colorScheme.error),
+                    leading: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                     title: const Text('Supprimer'),
                     onTap: () {
                       Navigator.of(context).pop();
@@ -410,11 +415,7 @@ class GalleryPage extends ConsumerWidget {
       width: double.infinity,
       height: double.infinity,
       color: colorScheme.primaryContainer,
-      child: Icon(
-        Icons.image,
-        size: 48.sp,
-        color: colorScheme.primary,
-      ),
+      child: Icon(Icons.image, size: 48.sp, color: colorScheme.primary),
     );
   }
 

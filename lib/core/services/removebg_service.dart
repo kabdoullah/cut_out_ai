@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 
 class RemoveBgService {
@@ -18,11 +18,12 @@ class RemoveBgService {
       final imageSizeMB = imageBytes.length / (1024 * 1024);
       if (imageSizeMB > AppConfig.maxImageSizeMB) {
         throw RemoveBgException(
-            'Image trop volumineuse (${imageSizeMB.toStringAsFixed(1)}MB). Maximum autorisé: ${AppConfig.maxImageSizeMB}MB');
+          'Image trop volumineuse (${imageSizeMB.toStringAsFixed(1)}MB). Maximum autorisé: ${AppConfig.maxImageSizeMB}MB',
+        );
       }
 
-      print('🖼️ Traitement image: ${imageSizeMB.toStringAsFixed(2)}MB');
-      print('📡 URL: ${_dio.options.baseUrl}${AppConfig.removeBgEndpoint}');
+      debugPrint('🖼️ Traitement image: ${imageSizeMB.toStringAsFixed(2)}MB');
+      debugPrint('📡 URL: ${_dio.options.baseUrl}${AppConfig.removeBgEndpoint}');
 
       // Créer FormData pour l'upload
       final formData = FormData.fromMap({
@@ -38,37 +39,36 @@ class RemoveBgService {
         AppConfig.removeBgEndpoint,
         data: formData,
         options: Options(
-          headers: {
-            'X-Api-Key': AppConfig.removeBgApiKey,
-          },
+          headers: {'X-Api-Key': AppConfig.removeBgApiKey},
           responseType: ResponseType.bytes,
         ),
       );
 
-      print('✅ Remove.bg Response: ${response.statusCode}');
+      debugPrint('✅ Remove.bg Response: ${response.statusCode}');
 
       // Vérifier les headers pour les infos de l'API
       final remainingCredits = response.headers.value('x-foreground-count');
       final totalCredits = response.headers.value('x-credits-total');
 
       if (remainingCredits != null && totalCredits != null) {
-        print('💰 Crédits restants: $remainingCredits/$totalCredits');
+        debugPrint('💰 Crédits restants: $remainingCredits/$totalCredits');
       }
 
       if (response.statusCode == 200) {
         return Uint8List.fromList(response.data);
       } else {
         throw RemoveBgException(
-            'Remove.bg API returned ${response.statusCode}');
+          'Remove.bg API returned ${response.statusCode}',
+        );
       }
     } on DioException catch (e) {
-      print('❌ Remove.bg DioException: ${e.message}');
-      print('❌ Status: ${e.response?.statusCode}');
-      print('❌ Data: ${e.response?.data}');
+      debugPrint('❌ Remove.bg DioException: ${e.message}');
+      debugPrint('❌ Status: ${e.response?.statusCode}');
+      debugPrint('❌ Data: ${e.response?.data}');
 
       throw RemoveBgException(_handleRemoveBgError(e));
     } catch (e) {
-      print('❌ Remove.bg General error: $e');
+      debugPrint('❌ Remove.bg General error: $e');
       throw RemoveBgException('Erreur inattendue: $e');
     }
   }

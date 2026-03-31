@@ -13,7 +13,6 @@ import 'features/theme/providers/theme_provider.dart' as custom_theme;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await MobileAds.instance.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -45,9 +44,7 @@ class MyApp extends ConsumerWidget {
           builder: (context, child) {
             return ErrorHandler(
               child: ConnectivityBanner(
-                child: LoadingOverlay(
-                  child: child ?? const SizedBox(),
-                ),
+                child: LoadingOverlay(child: child ?? const SizedBox()),
               ),
             );
           },

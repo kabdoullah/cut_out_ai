@@ -31,8 +31,9 @@ class AppState extends Equatable {
       images: images ?? this.images,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
-      currentImage:
-          clearCurrentImage ? null : (currentImage ?? this.currentImage),
+      currentImage: clearCurrentImage
+          ? null
+          : (currentImage ?? this.currentImage),
       isInitialized: isInitialized ?? this.isInitialized,
     );
   }
@@ -51,12 +52,12 @@ class AppState extends Equatable {
 
   @override
   List<Object?> get props => [
-        images,
-        isLoading,
-        error,
-        currentImage,
-        isInitialized,
-      ];
+    images,
+    isLoading,
+    error,
+    currentImage,
+    isInitialized,
+  ];
 
   // Méthodes utiles pour l'UI
   bool get hasImages => images.isNotEmpty;
@@ -99,8 +100,9 @@ extension AppStateExtensions on AppState {
 
     return copyWith(
       images: updatedImages,
-      currentImage:
-          currentImage?.id == updatedImage.id ? updatedImage : currentImage,
+      currentImage: currentImage?.id == updatedImage.id
+          ? updatedImage
+          : currentImage,
     );
   }
 

@@ -46,15 +46,17 @@ class BackgroundColorPicker extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              ..._presets.map((color) => Padding(
-                    padding: EdgeInsets.only(right: 8.w),
-                    child: _ColorSwatch(
-                      color: color,
-                      isSelected: selectedColor == color,
-                      onTap: () => onColorSelected(color),
-                      primaryColor: colorScheme.primary,
-                    ),
-                  )),
+              ..._presets.map(
+                (color) => Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: _ColorSwatch(
+                    color: color,
+                    isSelected: selectedColor == color,
+                    onTap: () => onColorSelected(color),
+                    primaryColor: colorScheme.primary,
+                  ),
+                ),
+              ),
               GestureDetector(
                 onTap: () => _showMoreColors(context),
                 child: Container(
@@ -63,12 +65,15 @@ class BackgroundColorPicker extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.5),
+                      color: colorScheme.outline.withValues(alpha: 0.5),
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(Icons.add,
-                      size: 18.sp, color: colorScheme.onSurface),
+                  child: Icon(
+                    Icons.add,
+                    size: 18.sp,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
             ],
@@ -109,20 +114,24 @@ class BackgroundColorPicker extends StatelessWidget {
             mainAxisSpacing: 8.h,
             crossAxisSpacing: 8.w,
             children: moreColors
-                .map((color) => GestureDetector(
-                      onTap: () {
-                        Navigator.of(ctx).pop();
-                        onColorSelected(color);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border:
-                              Border.all(color: Colors.grey.shade300, width: 1),
+                .map(
+                  (color) => GestureDetector(
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      onColorSelected(color);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1,
                         ),
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ),

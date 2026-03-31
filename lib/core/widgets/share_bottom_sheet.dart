@@ -37,7 +37,7 @@ class ShareBottomSheet extends StatelessWidget {
             width: 40.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -47,11 +47,7 @@ class ShareBottomSheet extends StatelessWidget {
             padding: EdgeInsets.all(20.w),
             child: Row(
               children: [
-                Icon(
-                  Icons.share,
-                  color: colorScheme.primary,
-                  size: 24.sp,
-                ),
+                Icon(Icons.share, color: colorScheme.primary, size: 24.sp),
                 SizedBox(width: 12.w),
                 Text(
                   'Partager',
@@ -151,7 +147,7 @@ class ShareBottomSheet extends StatelessWidget {
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             border: Border.all(
-              color: colorScheme.outline.withOpacity(0.2),
+              color: colorScheme.outline.withValues(alpha: 0.2),
             ),
             borderRadius: BorderRadius.circular(12.r),
           ),
@@ -227,32 +223,6 @@ class ShareBottomSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _shareBeforeAfter(BuildContext context) async {
-    if (originalPath == null || processedPath == null) return;
-
-    try {
-      _showLoadingDialog(context);
-
-      final result = await ShareService.shareBeforeAfter(
-        originalPath: originalPath!,
-        processedPath: processedPath!,
-        sharePositionOrigin: _getSharePosition(context),
-      );
-
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Fermer loading
-        Navigator.of(context).pop(); // Fermer bottom sheet
-        _showResultSnackBar(context, result);
-        onShareComplete?.call();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Fermer loading
-        _showErrorSnackBar(context, e.toString());
-      }
-    }
-  }
-
   Future<void> _shareMultipleImages(BuildContext context) async {
     if (multiplePaths == null || multiplePaths!.isEmpty) return;
 
@@ -280,7 +250,8 @@ class ShareBottomSheet extends StatelessWidget {
 
   Future<void> _shareApp(BuildContext context) async {
     try {
-      final appText = '🎨 Découvrez ${AppConfig.appName} !\n\n'
+      final appText =
+          '🎨 Découvrez ${AppConfig.appName} !\n\n'
           'Supprimez l\'arrière-plan de vos photos en quelques secondes avec l\'intelligence artificielle.\n\n'
           '✨ Gratuit et facile à utiliser\n'
           '🚀 Résultats professionnels\n'
@@ -309,9 +280,7 @@ class ShareBottomSheet extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -343,11 +312,7 @@ class ShareBottomSheet extends StatelessWidget {
       SnackBar(
         content: Row(
           children: [
-            Icon(
-              Icons.error,
-              color: Colors.white,
-              size: 20.sp,
-            ),
+            Icon(Icons.error, color: Colors.white, size: 20.sp),
             SizedBox(width: 8.w),
             Expanded(child: Text('Erreur: $error')),
           ],
@@ -369,7 +334,11 @@ class ShareBottomSheet extends StatelessWidget {
     if (box != null) {
       final position = box.localToGlobal(Offset.zero);
       return Rect.fromLTWH(
-          position.dx, position.dy, box.size.width, box.size.height);
+        position.dx,
+        position.dy,
+        box.size.width,
+        box.size.height,
+      );
     }
     return null;
   }

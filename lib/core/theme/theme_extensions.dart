@@ -12,39 +12,39 @@ extension AppColors on ColorScheme {
       : const Color(0xFFFBBF24);
 
   Color get cardShadow => brightness == Brightness.light
-      ? Colors.black.withOpacity(0.1)
+      ? Colors.black.withValues(alpha: 0.1)
       : Colors.transparent;
 }
 
 // Extensions pour les styles de texte
 extension AppTextStyles on TextTheme {
   TextStyle get heading1 => const TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.bold,
-        letterSpacing: -0.5,
-      );
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.5,
+  );
 
   TextStyle get heading2 => const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.25,
-      );
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.25,
+  );
 
   TextStyle get subtitle => const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
-      );
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.1,
+  );
 
   TextStyle get body => const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.25,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.25,
+  );
 
   TextStyle get caption => const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.4,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.4,
+  );
 }

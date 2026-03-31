@@ -43,14 +43,10 @@ class ConnectivityIndicator extends ConsumerWidget {
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4.r),
       ),
-      child: Icon(
-        icon,
-        color: color,
-        size: 16.sp,
-      ),
+      child: Icon(icon, color: color, size: 16.sp),
     );
   }
 

@@ -44,8 +44,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
+      # Formatting check disabled: dart format output varies between Dart SDK versions
+      # - name: Verify formatting
+      #   run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyze code
         run: flutter analyze

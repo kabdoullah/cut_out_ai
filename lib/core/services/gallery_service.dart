@@ -119,7 +119,8 @@ class GalleryService {
           return await _requestAndroidPhotosPermission();
         } else {
           // Android < 13 : Permission storage
-          debugPrint('📱 Android < 13 détecté - Utilisation permission storage');
+          debugPrint(
+              '📱 Android < 13 détecté - Utilisation permission storage');
           return await _requestAndroidStoragePermission();
         }
       } else if (Platform.isIOS) {

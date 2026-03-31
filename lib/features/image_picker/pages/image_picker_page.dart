@@ -99,7 +99,6 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage> {
                   ],
                 ),
               ),
-
             ] else
               Text(
                 '$remaining/${AppConfig.dailyRequestLimit} requête${remaining > 1 ? 's' : ''} disponible${remaining > 1 ? 's' : ''} aujourd\'hui',

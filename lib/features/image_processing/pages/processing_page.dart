@@ -94,8 +94,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
       body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight:
-                MediaQuery.of(context).size.height -
+            minHeight: MediaQuery.of(context).size.height -
                 MediaQuery.of(context).padding.top -
                 kToolbarHeight,
           ),
@@ -153,8 +152,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                     status: currentImage.status,
                     onRetry: currentImage.status.isFailed
                         ? () => ref
-                              .read(imageViewModelProvider.notifier)
-                              .retryProcessing(currentImage.id)
+                            .read(imageViewModelProvider.notifier)
+                            .retryProcessing(currentImage.id)
                         : null,
                   ),
                   SizedBox(height: 24.h),
@@ -364,9 +363,8 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
               Navigator.of(context).pop();
               ref.read(imageViewModelProvider.notifier).clearError();
               // Relancer automatiquement si possible
-              final currentImage = ref
-                  .read(imageViewModelProvider)
-                  .currentImage;
+              final currentImage =
+                  ref.read(imageViewModelProvider).currentImage;
               if (currentImage != null) {
                 ref
                     .read(imageViewModelProvider.notifier)

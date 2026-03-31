@@ -54,8 +54,8 @@ class _HomePageState extends ConsumerState<HomePage>
 
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
-        );
+      CurvedAnimation(parent: _heroController, curve: Curves.easeOutCubic),
+    );
   }
 
   void _startAnimations() async {
@@ -133,20 +133,19 @@ class _HomePageState extends ConsumerState<HomePage>
                 animation: _featuresAnimation,
                 builder: (context, child) {
                   return SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0, 0.4),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: _featuresController,
-                            curve: const Interval(
-                              0.4,
-                              1.0,
-                              curve: Curves.easeOutBack,
-                            ),
-                          ),
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.4),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _featuresController,
+                        curve: const Interval(
+                          0.4,
+                          1.0,
+                          curve: Curves.easeOutBack,
                         ),
+                      ),
+                    ),
                     child: FadeTransition(
                       opacity: _featuresAnimation,
                       child: _buildActionButtons(context, stats, ref),

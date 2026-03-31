@@ -250,8 +250,7 @@ class ShareBottomSheet extends StatelessWidget {
 
   Future<void> _shareApp(BuildContext context) async {
     try {
-      final appText =
-          '🎨 Découvrez ${AppConfig.appName} !\n\n'
+      final appText = '🎨 Découvrez ${AppConfig.appName} !\n\n'
           'Supprimez l\'arrière-plan de vos photos en quelques secondes avec l\'intelligence artificielle.\n\n'
           '✨ Gratuit et facile à utiliser\n'
           '🚀 Résultats professionnels\n'

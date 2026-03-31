@@ -79,13 +79,13 @@ class AppImage extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    originalPath,
-    processedPath,
-    createdAt,
-    name,
-    status,
-  ];
+        id,
+        originalPath,
+        processedPath,
+        createdAt,
+        name,
+        status,
+      ];
 }
 
 // États possibles d'une image

@@ -77,8 +77,8 @@ class ConnectivityService {
 
     final ConnectivityStatus newStatus =
         status == InternetConnectionStatus.connected
-        ? ConnectivityStatus.connected
-        : ConnectivityStatus.disconnected;
+            ? ConnectivityStatus.connected
+            : ConnectivityStatus.disconnected;
 
     _updateStatus(newStatus);
   }

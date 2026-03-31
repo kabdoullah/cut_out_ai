@@ -23,7 +23,8 @@ class RemoveBgService {
       }
 
       debugPrint('🖼️ Traitement image: ${imageSizeMB.toStringAsFixed(2)}MB');
-      debugPrint('📡 URL: ${_dio.options.baseUrl}${AppConfig.removeBgEndpoint}');
+      debugPrint(
+          '📡 URL: ${_dio.options.baseUrl}${AppConfig.removeBgEndpoint}');
 
       // Créer FormData pour l'upload
       final formData = FormData.fromMap({

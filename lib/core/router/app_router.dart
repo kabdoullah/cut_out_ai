@@ -158,5 +158,6 @@ extension AppRouterExtension on BuildContext {
   void goToResult({
     required String originalPath,
     required String processedPath,
-  }) => pushToResult(originalPath: originalPath, processedPath: processedPath);
+  }) =>
+      pushToResult(originalPath: originalPath, processedPath: processedPath);
 }

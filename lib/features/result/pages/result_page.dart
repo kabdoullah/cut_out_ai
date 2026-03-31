@@ -493,7 +493,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                 Positioned(
                   left:
                       (_sliderValue * MediaQuery.of(context).size.width * 0.8) -
-                      15.w,
+                          15.w,
                   top: (300.h / 2) - 15.h,
                   child: Container(
                     width: 30.w,

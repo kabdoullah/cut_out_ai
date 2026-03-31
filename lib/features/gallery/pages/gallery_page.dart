@@ -54,8 +54,8 @@ class GalleryPage extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : completedImages.isEmpty
-          ? _buildEmptyState(context)
-          : _buildGalleryGrid(context, completedImages),
+              ? _buildEmptyState(context)
+              : _buildGalleryGrid(context, completedImages),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.pushToImagePicker(),
         child: const Icon(Icons.add_photo_alternate),

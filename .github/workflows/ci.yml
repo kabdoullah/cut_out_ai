@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - feat/migrate-to-local-ml
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -95,7 +96,7 @@ jobs:
         run: flutter pub get
 
       - name: Build APK (debug)
-        run: flutter build apk --debug --dart-define=REMOVEBG_API_KEY=dummy_key_for_build_check
+        run: flutter build apk --debug
 
       - name: Check APK size
         run: |

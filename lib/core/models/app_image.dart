@@ -98,7 +98,6 @@ enum AppImageStatus {
 
 // Extension pour des méthodes utiles sur l'enum
 extension AppImageStatusExtension on AppImageStatus {
-  bool get isPending => this == AppImageStatus.pending;
   bool get isProcessing => this == AppImageStatus.processing;
   bool get isCompleted => this == AppImageStatus.completed;
   bool get isFailed => this == AppImageStatus.failed;
@@ -116,47 +115,6 @@ extension AppImageStatusExtension on AppImageStatus {
     }
   }
 
-  // Couleur associée au statut
-  String get colorHex {
-    switch (this) {
-      case AppImageStatus.pending:
-        return '#6B7280'; // Gris
-      case AppImageStatus.processing:
-        return '#3B82F6'; // Bleu
-      case AppImageStatus.completed:
-        return '#10B981'; // Vert
-      case AppImageStatus.failed:
-        return '#EF4444'; // Rouge
-    }
-  }
-}
-
-class ImageMetadata {
-  final int width;
-  final int height;
-  final int sizeInBytes;
-  final String format;
-
-  const ImageMetadata({
-    required this.width,
-    required this.height,
-    required this.sizeInBytes,
-    required this.format,
-  });
-
-  // Taille formatée en MB/KB
-  String get formattedSize {
-    if (sizeInBytes > 1024 * 1024) {
-      final mb = sizeInBytes / (1024 * 1024);
-      return '${mb.toStringAsFixed(1)} MB';
-    } else {
-      final kb = sizeInBytes / 1024;
-      return '${kb.toStringAsFixed(0)} KB';
-    }
-  }
-
-  // Résolution formatée
-  String get resolution => '${width}x$height';
 }
 
 class ImageStats {
@@ -176,13 +134,4 @@ class ImageStats {
   bool get hasAnyImages => total > 0;
   bool get hasProcessingImages => processing > 0;
   bool get hasFailedImages => failed > 0;
-}
-
-// Exception personnalisée pour le traitement d'image
-class ImageProcessingException implements Exception {
-  final String message;
-  const ImageProcessingException(this.message);
-
-  @override
-  String toString() => message;
 }

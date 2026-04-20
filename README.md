@@ -1,324 +1,226 @@
 # CutOut AI
 
-Application Flutter qui supprime l'arrière-plan des photos en utilisant l'intelligence artificielle via l'API Remove.bg.
+Application Flutter qui supprime l'arrière-plan des photos **directement sur l'appareil** grâce à l'intelligence artificielle — sans connexion Internet, sans API, sans limite.
 
-## 📱 Fonctionnalités
+## Fonctionnalités
 
-- 📷 Prise de photo avec caméra ou sélection depuis la galerie
-- 🤖 Suppression d'arrière-plan par IA (Remove.bg)
-- 🎨 Support du mode clair/sombre
-- 📂 Galerie locale des images traitées
-- 🔄 Gestion des états (processing, completed, failed)
-- 📤 Partage des créations
-- 🌐 Vérification de connectivité Internet
+- Prise de photo avec caméra ou sélection depuis la galerie
+- Suppression d'arrière-plan par IA on-device (ONNX Runtime)
+- Ajout d'une couleur de fond ou d'une image de fond personnalisée sur le résultat
+- Sauvegarde dans la galerie système
+- Galerie locale des images traitées
+- Partage des créations
+- Support mode clair/sombre
 
-## 🚀 Getting Started
+## Comment fonctionne l'IA on-device
 
-### Prérequis
+### Vue d'ensemble
 
-- Flutter SDK (>= 3.9.2)
-- Dart SDK
-- Un compte [Remove.bg](https://www.remove.bg/) avec une API key
+Au lieu d'envoyer l'image vers un serveur cloud (comme l'ancienne API Remove.bg), l'IA tourne **intégralement sur l'appareil**. Aucune image ne quitte le téléphone.
 
-### Installation
-
-1. **Cloner le repository**
-```bash
-git clone https://github.com/votre-username/cutout_ai.git
-cd cutout_ai
+```
+Image sélectionnée
+       ↓
+Chargement en mémoire (Uint8List)
+       ↓
+Inférence ONNX Runtime (on-device)
+  → Modèle de segmentation embarqué
+  → Génère un masque alpha pixel par pixel
+       ↓
+Composition PNG transparent (ui.Image → Uint8List)
+       ↓
+Sauvegarde locale (app documents directory)
 ```
 
-2. **Installer les dépendances**
-```bash
-flutter pub get
-```
+### La pile technique
 
-3. **Configurer l'API Key**
+| Composant | Rôle |
+|-----------|------|
+| `image_background_remover` | Package Flutter qui orchestre le pipeline ML |
+| `flutter_onnxruntime` | Runtime ONNX — exécute le modèle sur CPU/GPU |
+| Modèle ONNX embarqué | Réseau de neurones de segmentation (~30 MB, inclus dans l'APK) |
+| `BackgroundRemover.instance.removeBg()` | Entrée: `Uint8List` → Sortie: `ui.Image` avec canal alpha |
 
-Éditer le fichier `.env/dev.json`:
-```bash
-nano .env/dev.json
-```
+### Segmentation par canal alpha
 
-Remplacer `your_dev_api_key_here` par votre clé API Remove.bg.
+Le modèle prédit pour chaque pixel une valeur de **0.0 à 1.0** (opacité). Les pixels correspondant au sujet sont conservés (alpha élevé), les pixels d'arrière-plan deviennent transparents (alpha = 0). Le résultat est exporté en PNG 32 bits (RGBA).
 
-4. **Lancer l'application**
-```bash
-flutter run --dart-define-from-file=.env/dev.json
-```
+### Initialisation du modèle
 
-## 🔐 Configuration de Sécurité
+Le modèle ONNX est chargé **une seule fois au démarrage** de l'application :
 
-### ⚠️ IMPORTANT - Ne JAMAIS commit l'API key dans le code
-
-L'API key Remove.bg est sensible et ne doit **JAMAIS** être committée dans le code source.
-
-### Méthode Recommandée: --dart-define-from-file
-
-Cette méthode permet de gérer plusieurs environnements facilement avec des fichiers JSON.
-
-#### Configuration Initiale
-
-1. **Développement** - Éditer `.env/dev.json`:
-```bash
-nano .env/dev.json
-```
-
-Remplacer `your_dev_api_key_here` par votre vraie clé API.
-
-2. **Production** - Créer `.env/prod.json`:
-```bash
-cp .env/prod.json.example .env/prod.json
-nano .env/prod.json
-```
-
-#### Utilisation Quotidienne
-
-```bash
-# Développement
-flutter run --dart-define-from-file=.env/dev.json
-
-# Build Release Android (Production)
-flutter build appbundle --release \
-  --dart-define-from-file=.env/prod.json \
-  --obfuscate \
-  --split-debug-info=build/debug-info
-
-# Build Release iOS (Production)
-flutter build ipa --release \
-  --dart-define-from-file=.env/prod.json \
-  --obfuscate \
-  --split-debug-info=build/debug-info
-```
-
-### Méthode Alternative: --dart-define
-
-Si vous préférez passer les variables manuellement:
-
-```bash
-# Développement
-flutter run --dart-define=REMOVEBG_API_KEY=votre_cle_api_ici
-
-# Build Release
-flutter build appbundle --release \
-  --dart-define=REMOVEBG_API_KEY=votre_cle_api_ici \
-  --obfuscate \
-  --split-debug-info=build/debug-info
-```
-
-### Configuration dans l'IDE
-
-#### VS Code
-
-Créer `.vscode/launch.json`:
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Development",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart",
-      "args": [
-        "--dart-define-from-file=.env/dev.json"
-      ]
-    },
-    {
-      "name": "Production",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart",
-      "args": [
-        "--dart-define-from-file=.env/prod.json"
-      ]
-    }
-  ]
+```dart
+// main.dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalMlBackgroundRemovalService.initialize(); // chargement modèle
+  runApp(const ProviderScope(child: MyApp()));
 }
 ```
 
-#### Android Studio / IntelliJ
+Les traitements suivants utilisent le modèle déjà en mémoire — pas de rechargement.
 
-1. Run → Edit Configurations
-2. Additional run args: `--dart-define-from-file=.env/dev.json`
-3. Créer plusieurs configurations pour Dev/Staging/Prod
+### Traitement d'une image (flux complet)
 
-## 🔑 Obtenir une API Key Remove.bg
+```
+ImagePickerPage → processImage(path)
+    → ImageViewModel.processImage()
+        → ImageProcessingService.removeBackground()
+            → LocalMlBackgroundRemovalService.removeBackground()
+                → BackgroundRemover.instance.removeBg(bytes)  ← inférence ONNX
+                → uiImage.toByteData(ImageByteFormat.png)     ← encodage PNG
+            → FileService.saveProcessedImage()                ← sauvegarde locale
+        → AppState.completeProcessing()
+    → Navigation vers ResultPage
+```
 
-1. Créer un compte sur [Remove.bg](https://www.remove.bg/users/sign_up)
-2. Aller dans [API Dashboard](https://www.remove.bg/api)
-3. Copier votre API key
+### Avantages vs API cloud
 
-**Plans disponibles:**
-- **Free**: 50 crédits/mois (idéal pour développement)
-- **Payant**: Plus de crédits selon vos besoins
+| Critère | On-device ML | API cloud (Remove.bg) |
+|---------|-------------|----------------------|
+| Connexion Internet | Non requise | Obligatoire |
+| Limite d'utilisation | Illimitée | 50 crédits/mois gratuit |
+| Coût | 0€ | Payant au-delà du quota |
+| Confidentialité | Image reste sur l'appareil | Image envoyée au serveur |
+| Taille APK | +30 MB (modèle embarqué) | Léger |
+| Latence | Dépend du CPU/GPU appareil | Dépend du réseau |
 
-## 🏗️ Architecture du Projet
+### Prérequis plateforme
+
+- **Android**: minSdk 21
+- **iOS**: minimum iOS 16.0 (requis par `flutter_onnxruntime`)
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/kabdoullah/cut_out_ai.git
+cd cutout_ai
+flutter pub get
+flutter run   # aucun --dart-define requis
+```
+
+### iOS uniquement
+
+Créer `ios/Podfile` :
+
+```ruby
+platform :ios, '16.0'
+use_frameworks! :linkage => :static
+use_modular_headers!
+```
+
+Puis :
+
+```bash
+cd ios && pod install && cd ..
+flutter run
+```
+
+Dans Xcode (Release) : **Strip Linked Product** → No.
+
+---
+
+## Build release
+
+```bash
+# Android APK
+flutter build apk --release
+
+# Android App Bundle (Play Store)
+flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
+
+# iOS
+flutter build ipa --release --obfuscate --split-debug-info=build/debug-info
+```
+
+---
+
+## Architecture
 
 ```
 lib/
-├── core/                    # Infrastructure de base
-│   ├── config/             # Configuration (AppConfig)
-│   ├── models/             # Modèles de données
-│   ├── providers/          # Providers globaux
-│   ├── router/             # Navigation (GoRouter)
-│   ├── services/           # Services (API, Storage, etc.)
-│   ├── theme/              # Thèmes de l'app
-│   └── widgets/            # Widgets réutilisables
-└── features/               # Fonctionnalités
-    ├── gallery/            # Galerie d'images
+├── core/
+│   ├── config/             # AppConfig (limites taille image, etc.)
+│   ├── models/             # AppImage, AppState, AppImageStatus
+│   ├── router/             # GoRouter + extensions de navigation
+│   ├── services/
+│   │   ├── background_removal_service.dart      # Interface abstraite
+│   │   ├── local_ml_background_removal_service.dart  # Implémentation ONNX
+│   │   ├── image_processing_service.dart        # Orchestration
+│   │   ├── file_service.dart                    # Sauvegarde fichiers
+│   │   ├── gallery_service.dart                 # Export galerie système
+│   │   └── storage_service.dart                 # Persistance SharedPrefs
+│   ├── theme/
+│   └── widgets/
+└── features/
+    ├── gallery/            # Galerie in-app
     ├── home/               # Page d'accueil
-    ├── image_picker/       # Sélection d'images
-    ├── image_processing/   # Traitement d'images
-    ├── result/             # Résultats
-    └── theme/              # Gestion du thème
+    ├── image_picker/       # Sélection source image
+    ├── image_processing/   # Page de traitement + ViewModel
+    ├── result/             # Résultat + couleur de fond + partage
+    └── theme/              # Gestion thème clair/sombre
 ```
 
-### State Management
+### State management
 
-- **Riverpod** pour la gestion d'état
-- Providers pour l'injection de dépendances
-- ViewModels pour la logique métier
+Riverpod 3.0 — `Notifier`/`NotifierProvider`. `ImageViewModel` est le store central pour toutes les opérations image.
 
-### Navigation
+### Swapper l'implémentation ML
 
-- **GoRouter** pour la navigation déclarative
-- Extensions pour le routing type-safe
+L'architecture est conçue pour faciliter le remplacement du moteur ML :
 
-## 📦 Build de Release avec Obfuscation
-
-Pour protéger votre code lors du déploiement:
-
-```bash
-# Android App Bundle (Play Store)
-flutter build appbundle --release \
-  --dart-define-from-file=.env/prod.json \
-  --obfuscate \
-  --split-debug-info=build/debug-info
-
-# Android APK (Pour tests)
-flutter build apk --release \
-  --dart-define-from-file=.env/prod.json \
-  --obfuscate \
-  --split-debug-info=build/debug-info
-
-# iOS
-flutter build ipa --release \
-  --dart-define-from-file=.env/prod.json \
-  --obfuscate \
-  --split-debug-info=build/debug-info
+```dart
+// image_processing_service.dart
+final imageProcessingServiceProvider = Provider<ImageProcessingService>((ref) {
+  return ImageProcessingService(
+    backgroundRemovalService: LocalMlBackgroundRemovalService(), // ← changer ici
+    fileService: ref.watch(fileServiceProvider),
+  );
+});
 ```
 
-## 🛡️ Bonnes Pratiques de Sécurité
+Toute classe qui implémente `BackgroundRemovalService` peut être branchée sans toucher au reste de l'app.
 
-### ✅ À FAIRE
-- ✅ Utiliser `--dart-define-from-file` avec des fichiers JSON séparés
-- ✅ Garder `.env/dev.json`, `.env/prod.json` dans `.gitignore`
-- ✅ Committer uniquement les fichiers `.example`
-- ✅ Utiliser l'obfuscation pour les builds de release
-- ✅ Révoquer immédiatement les clés compromises
-- ✅ Utiliser différentes clés pour dev/staging/production
-- ✅ Monitorer l'utilisation de votre API key sur Remove.bg
+---
 
-### ❌ À ÉVITER
-- ❌ Ne JAMAIS hardcoder les clés API dans le code
-- ❌ Ne JAMAIS committer `.env/dev.json`, `.env/prod.json` dans Git
-- ❌ Ne JAMAIS partager vos clés API publiquement
-- ❌ Ne JAMAIS utiliser la même clé pour dev et production
-- ❌ Ne JAMAIS laisser de `defaultValue` avec une vraie clé API
+## Dépendances principales
 
-## 🆘 Que Faire si l'API Key est Compromise?
+| Package | Usage |
+|---------|-------|
+| `flutter_riverpod ^3.0.0` | State management |
+| `go_router ^16.2.1` | Navigation |
+| `image_background_remover ^2.0.0` | Pipeline ML on-device |
+| `flutter_screenutil ^5.9.3` | UI responsive |
+| `image_picker ^1.2.0` | Caméra / galerie |
+| `gal ^2.3.2` | Export galerie système |
+| `share_plus ^10.1.2` | Partage |
+| `open_filex ^4.7.0` | Ouverture fichier après sauvegarde |
 
-1. **Immédiatement**: Révoquer la clé sur [Remove.bg Dashboard](https://www.remove.bg/api)
-2. Générer une nouvelle clé
-3. Mettre à jour votre configuration locale (`.env/dev.json`, `.env/prod.json`)
-4. Si committée dans Git:
-   - Nettoyer l'historique Git (attention: opération destructive)
-   - Ou créer un nouveau repository
+---
 
-## 🔍 Vérification de Sécurité
+## Troubleshooting
 
-Avant chaque commit, vérifier:
-```bash
-# Rechercher des potentielles clés API hardcodées
-git diff | grep -i "api.*key"
+### Build iOS échoue avec erreur linking
 
-# S'assurer que .env n'est pas tracké
-git status | grep ".env"
-```
+Vérifier que `ios/Podfile` contient `use_frameworks! :linkage => :static`.
 
-## 📱 Commandes Utiles
+### ANR sur premiers traitements (MIUI / appareils lents)
 
-```bash
-# Développement
-flutter run --dart-define-from-file=.env/dev.json
+Normal au premier lancement si le modèle n'est pas encore chargé. Le modèle est initialisé au démarrage de l'app — les traitements suivants sont plus rapides.
 
-# Analyse statique
-flutter analyze
+### Image trop volumineuse
 
-# Tests
-flutter test
+Limite : 10 MB. Réduire la résolution avant traitement ou utiliser `imageQuality` dans `image_picker`.
 
-# Nettoyage
-flutter clean
+### Permissions caméra/galerie refusées
 
-# Build APK de debug
-flutter build apk --debug --dart-define-from-file=.env/dev.json
-```
+Désinstaller et réinstaller l'app, puis accorder les permissions au premier lancement.
 
-## 📄 Dépendances Principales
+---
 
-| Package | Version | Usage |
-|---------|---------|-------|
-| `flutter_riverpod` | ^3.0.0 | State management |
-| `go_router` | ^16.2.1 | Navigation |
-| `dio` | ^5.9.0 | HTTP client |
-| `flutter_screenutil` | ^5.9.3 | Responsive UI |
-| `image_picker` | ^1.2.0 | Sélection d'images |
-| `permission_handler` | ^12.0.1 | Permissions |
-| `connectivity_plus` | ^6.1.5 | Connectivité réseau |
-| `share_plus` | ^10.1.2 | Partage |
+## Support
 
-## 🐛 Troubleshooting
-
-### Erreur: "API Key not configured"
-
-Vérifiez que:
-1. Le fichier `.env/dev.json` existe
-2. La clé `REMOVEBG_API_KEY` est remplie
-3. Vous utilisez `--dart-define-from-file=.env/dev.json`
-
-### Erreur: "File not found"
-
-Assurez-vous d'être à la racine du projet:
-```bash
-ls -la .env/
-```
-
-### Problème de permissions (Android)
-
-Si les permissions caméra/stockage ne fonctionnent pas:
-1. Vérifier `android/app/src/main/AndroidManifest.xml`
-2. Désinstaller et réinstaller l'app
-3. Vérifier les paramètres de l'appareil
-
-## 📚 Documentation Supplémentaire
-
-- [Flutter Documentation](https://docs.flutter.dev/)
-- [Riverpod Documentation](https://riverpod.dev/)
-- [Remove.bg API Documentation](https://www.remove.bg/api)
-
-## 📧 Support
-
-Pour toute question:
-- **Email**: abdoulaye@cutoutai.com
-- **Issues**: [GitHub Issues](https://github.com/votre-username/cutout_ai/issues)
-
-## 📜 Licence
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
-## 🙏 Remerciements
-
-- [Remove.bg](https://www.remove.bg/) pour l'API de suppression d'arrière-plan
-- La communauté Flutter pour les excellents packages
+- **Email**: abdoullahcoulibaly2@gmail.com
+- **Issues**: [GitHub Issues](https://github.com/kabdoullah/cut_out_ai/issues)

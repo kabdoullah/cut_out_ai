@@ -1,68 +1,34 @@
 # Changelog
 
-## [1.0.1] - 2026-03-31
+## [1.2.0] - 2026-04-20
 
 ### Added
--
+- Suppression d'arrière-plan par IA directement sur l'appareil (ONNX Runtime) — aucune connexion Internet requise
+- Ajout d'une image comme fond du résultat (en plus de la couleur unie)
+- Aperçu en direct du fond dans la page résultat
+- Nouveau design : typographie Outfit/Nunito, palette violet/fuchsia, animations enrichies
+- Hero animé sur la page d'accueil
 
 ### Changed
--
+- Architecture : remplacement de l'API Remove.bg par un moteur ML local (`image_background_remover`)
+- Suppression des limites de traitement (était 2 req/jour en gratuit)
+- iOS : déploiement minimum relevé à iOS 16.0
 
-### Fixed
--
-
-
-## [1.0.1] - 2026-03-31
-
-### Added
--
-
-### Changed
--
-
-### Fixed
--
-
-
-## [1.0.1] - 2026-03-30
-
-### Added
--
-
-### Changed
--
-
-### Fixed
--
-
-
-Toutes les modifications notables de ce projet seront documentées dans ce fichier.
-
-Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
+### Removed
+- Dépendance à Internet pour le traitement des images
+- Bannière de connectivité réseau
+- Clé API Remove.bg (plus nécessaire)
 
 ## [1.0.0] - 2025-10-14
 
 ### Added
-- Suppression d'arrière-plan avec intelligence artificielle via Remove.bg API
+- Suppression d'arrière-plan avec Remove.bg API
 - Sélection d'image depuis la caméra ou la galerie
 - Galerie locale pour gérer les images traitées
 - Partage d'images traitées
 - Sauvegarde automatique dans la galerie de l'appareil
 - Support multi-plateforme (Android, iOS)
-- Gestion de la connectivité réseau
 - Interface utilisateur moderne et intuitive
-- Politique de confidentialité intégrée
-- Splash screen personnalisé
-- Icône d'application personnalisée
-
-### Technical
-- Architecture basée sur Riverpod pour la gestion d'état
-- Navigation avec GoRouter
-- API Remove.bg avec gestion des erreurs et timeouts
-- Tests unitaires et analyse statique
-- Support Android 15 (targetSDK 35)
-- Linting personnalisé avec Riverpod Lint
 
 ---
 

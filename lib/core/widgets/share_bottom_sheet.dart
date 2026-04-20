@@ -74,16 +74,6 @@ class ShareBottomSheet extends StatelessWidget {
                     onTap: () => _shareProcessedImage(context),
                   ),
 
-                /*       // Avant/Après
-                if (originalPath != null && processedPath != null)
-                  _buildShareOption(
-                    context,
-                    icon: Icons.compare,
-                    title: 'Avant/Après',
-                    subtitle: 'Partager la comparaison originale vs traitée',
-                    onTap: () => _shareBeforeAfter(context),
-                  ),*/
-
                 // Images multiples
                 if (multiplePaths != null && multiplePaths!.isNotEmpty)
                   _buildShareOption(

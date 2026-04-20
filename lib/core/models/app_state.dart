@@ -43,8 +43,6 @@ class AppState extends Equatable {
   // États prédéfinis utiles
   AppState get withLoading => copyWith(isLoading: true, clearError: true);
 
-  AppState get withoutLoading => copyWith(isLoading: false);
-
   AppState get withoutError => copyWith(clearError: true);
 
   AppState get withoutCurrentImage => copyWith(clearCurrentImage: true);
@@ -58,16 +56,7 @@ class AppState extends Equatable {
         isInitialized,
       ];
 
-  // Méthodes utiles pour l'UI
-  bool get hasImages => images.isNotEmpty;
-
-  bool get hasError => error != null;
-
-  bool get hasCurrentImage => currentImage != null;
-
   // Statistiques rapides
-  int get totalImages => images.length;
-
   int get completedImages =>
       images.where((img) => img.status.isCompleted).length;
 
@@ -75,13 +64,6 @@ class AppState extends Equatable {
       images.where((img) => img.status.isProcessing).length;
 
   int get failedImages => images.where((img) => img.status.isFailed).length;
-
-  // Image la plus récente
-  AppImage? get lastImage => images.isNotEmpty ? images.last : null;
-
-  // Toutes les images terminées (pour la galerie)
-  List<AppImage> get successfulImages =>
-      images.where((img) => img.status.isCompleted).toList();
 }
 
 // Extensions pour des opérations courantes sur AppState

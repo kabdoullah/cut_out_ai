@@ -49,63 +49,6 @@ class PermissionService {
     }
   }
 
-  // Vérifier toutes les permissions nécessaires
-  static Future<Map<String, bool>> checkAllPermissions() async {
-    try {
-      final cameraStatus = await Permission.camera.status;
-
-      PermissionStatus galleryStatus;
-      if (await _isAndroid13OrHigher()) {
-        galleryStatus = await Permission.photos.status;
-      } else {
-        galleryStatus = await Permission.storage.status;
-      }
-
-      return {
-        'camera': cameraStatus.isGranted,
-        'gallery': galleryStatus.isGranted,
-      };
-    } catch (e) {
-      debugPrint('❌ Erreur lors de la vérification des permissions: $e');
-      return {'camera': false, 'gallery': false};
-    }
-  }
-
-  // Demander toutes les permissions d'un coup
-  static Future<bool> requestAllPermissions() async {
-    try {
-      final permissions = <Permission>[];
-
-      // Ajouter les permissions nécessaires
-      permissions.add(Permission.camera);
-
-      if (await _isAndroid13OrHigher()) {
-        permissions.add(Permission.photos);
-      } else {
-        permissions.add(Permission.storage);
-      }
-
-      final statuses = await permissions.request();
-
-      // Vérifier que toutes sont accordées
-      final allGranted = statuses.values.every((status) => status.isGranted);
-
-      if (!allGranted) {
-        // Log des permissions refusées pour debug
-        statuses.forEach((permission, status) {
-          if (!status.isGranted) {
-            debugPrint('❌ Permission refusée: $permission - Status: $status');
-          }
-        });
-      }
-
-      return allGranted;
-    } catch (e) {
-      debugPrint('❌ Erreur lors de la demande des permissions: $e');
-      return false;
-    }
-  }
-
   // Ouvrir les paramètres si permission refusée définitivement
   static Future<bool> openDeviceSettings() async {
     try {
@@ -114,42 +57,6 @@ class PermissionService {
     } catch (e) {
       debugPrint('❌ Erreur ouverture paramètres: $e');
       return false;
-    }
-  }
-
-  // Vérifier si une permission est refusée définitivement
-  static Future<bool> isPermissionPermanentlyDenied(
-    Permission permission,
-  ) async {
-    try {
-      final status = await permission.status;
-      return status.isPermanentlyDenied;
-    } catch (e) {
-      debugPrint('❌ Erreur vérification permission refusée définitivement: $e');
-      return false;
-    }
-  }
-
-  // Obtenir le statut détaillé d'une permission pour debug
-  static Future<String> getPermissionStatusString(Permission permission) async {
-    try {
-      final status = await permission.status;
-      switch (status) {
-        case PermissionStatus.granted:
-          return 'Accordée';
-        case PermissionStatus.denied:
-          return 'Refusée';
-        case PermissionStatus.restricted:
-          return 'Restreinte';
-        case PermissionStatus.limited:
-          return 'Limitée';
-        case PermissionStatus.permanentlyDenied:
-          return 'Refusée définitivement';
-        default:
-          return 'Statut inconnu';
-      }
-    } catch (e) {
-      return 'Erreur: $e';
     }
   }
 

@@ -3,8 +3,8 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  connectivity_plus
   file_selector_windows
+  flutter_onnxruntime
   gal
   permission_handler_windows
   share_plus

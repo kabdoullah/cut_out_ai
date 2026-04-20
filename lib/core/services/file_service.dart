@@ -1,25 +1,113 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
-// Service pour la gestion des fichiers locaux
+// Top-level — required by Isolate.run
+Uint8List _compositeAndEncodePng(_CompositeRequest request) {
+  final source = img.decodeImage(request.sourceBytes);
+  if (source == null) throw Exception('Impossible de décoder l\'image source');
+
+  final rgba = source.convert(numChannels: 4);
+
+  final background = img.Image(
+    width: rgba.width,
+    height: rgba.height,
+    numChannels: 4,
+  );
+  img.fill(
+    background,
+    color: img.ColorRgba8(
+      request.backgroundRed,
+      request.backgroundGreen,
+      request.backgroundBlue,
+      request.backgroundAlpha,
+    ),
+  );
+
+  img.compositeImage(background, rgba);
+  return Uint8List.fromList(img.encodePng(background));
+}
+
+class _CompositeRequest {
+  final Uint8List sourceBytes;
+  final int backgroundRed;
+  final int backgroundGreen;
+  final int backgroundBlue;
+  final int backgroundAlpha;
+
+  const _CompositeRequest({
+    required this.sourceBytes,
+    required this.backgroundRed,
+    required this.backgroundGreen,
+    required this.backgroundBlue,
+    required this.backgroundAlpha,
+  });
+}
+
+// Top-level — required by Isolate.run
+Uint8List _compositeWithImageBackground(_CompositeImageRequest request) {
+  final source = img.decodeImage(request.sourceBytes);
+  if (source == null) throw Exception('Impossible de décoder l\'image source');
+
+  final bgRaw = img.decodeImage(request.backgroundBytes);
+  if (bgRaw == null) throw Exception('Impossible de décoder l\'image de fond');
+
+  final rgba = source.convert(numChannels: 4);
+
+  // Scale background to cover target dimensions, preserving aspect ratio
+  final scaleX = rgba.width / bgRaw.width;
+  final scaleY = rgba.height / bgRaw.height;
+  final scale = scaleX > scaleY ? scaleX : scaleY;
+
+  final scaledWidth = (bgRaw.width * scale).round();
+  final scaledHeight = (bgRaw.height * scale).round();
+
+  final scaled = img.copyResize(
+    bgRaw,
+    width: scaledWidth,
+    height: scaledHeight,
+    interpolation: img.Interpolation.linear,
+  );
+
+  // Center-crop to exact target dimensions
+  final offsetX = ((scaledWidth - rgba.width) / 2).round();
+  final offsetY = ((scaledHeight - rgba.height) / 2).round();
+  final background = img.copyCrop(
+    scaled,
+    x: offsetX,
+    y: offsetY,
+    width: rgba.width,
+    height: rgba.height,
+  );
+
+  img.compositeImage(background, rgba);
+  return Uint8List.fromList(img.encodePng(background));
+}
+
+class _CompositeImageRequest {
+  final Uint8List sourceBytes;
+  final Uint8List backgroundBytes;
+
+  const _CompositeImageRequest({
+    required this.sourceBytes,
+    required this.backgroundBytes,
+  });
+}
+
 class FileService {
-  // Obtenir le répertoire de l'app pour sauvegarder les images traitées
   Future<Directory> get _appDirectory async {
     final directory = await getApplicationDocumentsDirectory();
     final appDir = Directory('${directory.path}/cutout_ai');
-
     if (!await appDir.exists()) {
       await appDir.create(recursive: true);
     }
-
     return appDir;
   }
 
-  // Sauvegarder une image traitée localement
   Future<String> saveProcessedImage(
     Uint8List imageData,
     String originalName,
@@ -29,27 +117,13 @@ class FileService {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = 'processed_${timestamp}_$originalName.png';
       final filePath = '${appDir.path}/$fileName';
-
-      final file = File(filePath);
-      await file.writeAsBytes(imageData);
-
+      await File(filePath).writeAsBytes(imageData);
       return filePath;
     } catch (e) {
       throw FileServiceException('Impossible de sauvegarder l\'image: $e');
     }
   }
 
-  // Vérifier si un fichier existe
-  Future<bool> fileExists(String path) async {
-    try {
-      final file = File(path);
-      return await file.exists();
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // Supprimer un fichier
   Future<void> deleteFile(String path) async {
     try {
       final file = File(path);
@@ -61,86 +135,45 @@ class FileService {
     }
   }
 
-  // Nettoyer les anciens fichiers (par exemple, plus de 30 jours)
-  Future<void> cleanupOldFiles({int daysToKeep = 30}) async {
+  Future<Uint8List> applyBackgroundImage(
+    String imagePath,
+    Uint8List backgroundImageBytes,
+  ) async {
     try {
-      final appDir = await _appDirectory;
-      final cutoffDate = DateTime.now().subtract(Duration(days: daysToKeep));
-
-      await for (final entity in appDir.list()) {
-        if (entity is File) {
-          final stat = await entity.stat();
-          if (stat.modified.isBefore(cutoffDate)) {
-            await entity.delete();
-          }
-        }
-      }
+      final sourceBytes = await File(imagePath).readAsBytes();
+      final request = _CompositeImageRequest(
+        sourceBytes: sourceBytes,
+        backgroundBytes: backgroundImageBytes,
+      );
+      return Isolate.run(() => _compositeWithImageBackground(request));
     } catch (e) {
-      throw FileServiceException('Erreur lors du nettoyage: $e');
+      throw FileServiceException('Impossible d\'appliquer l\'image de fond: $e');
     }
   }
 
-  // Appliquer une couleur de fond sur un PNG transparent
+  /// Decode + composite + PNG encode in background isolate — main thread free.
   Future<Uint8List> applyBackgroundColor(
     String imagePath,
     Color backgroundColor,
   ) async {
     try {
-      final bytes = await File(imagePath).readAsBytes();
+      final sourceBytes = await File(imagePath).readAsBytes();
 
-      final completer = Completer<ui.Image>();
-      ui.decodeImageFromList(bytes, completer.complete);
-      final uiImage = await completer.future;
-
-      final w = uiImage.width;
-      final h = uiImage.height;
-
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
-
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
-        Paint()..color = backgroundColor,
-      );
-      canvas.drawImage(uiImage, Offset.zero, Paint());
-
-      final composited = await recorder.endRecording().toImage(w, h);
-      final byteData = await composited.toByteData(
-        format: ui.ImageByteFormat.png,
+      final request = _CompositeRequest(
+        sourceBytes: sourceBytes,
+        backgroundRed: (backgroundColor.r * 255.0).round().clamp(0, 255),
+        backgroundGreen: (backgroundColor.g * 255.0).round().clamp(0, 255),
+        backgroundBlue: (backgroundColor.b * 255.0).round().clamp(0, 255),
+        backgroundAlpha: (backgroundColor.a * 255.0).round().clamp(0, 255),
       );
 
-      uiImage.dispose();
-      composited.dispose();
-
-      return byteData!.buffer.asUint8List();
+      return Isolate.run(() => _compositeAndEncodePng(request));
     } catch (e) {
-      throw FileServiceException(
-        'Impossible d\'appliquer la couleur de fond: $e',
-      );
-    }
-  }
-
-  // Obtenir la taille du répertoire de l'app
-  Future<int> getAppDirectorySize() async {
-    try {
-      final appDir = await _appDirectory;
-      int totalSize = 0;
-
-      await for (final entity in appDir.list(recursive: true)) {
-        if (entity is File) {
-          final stat = await entity.stat();
-          totalSize += stat.size;
-        }
-      }
-
-      return totalSize;
-    } catch (e) {
-      return 0;
+      throw FileServiceException('Impossible d\'appliquer la couleur de fond: $e');
     }
   }
 }
 
-// Exception personnalisée pour les fichiers
 class FileServiceException implements Exception {
   final String message;
   const FileServiceException(this.message);

@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/app_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/models/app_image.dart';
+import '../../../core/theme/app_theme.dart';
 import '../providers/image_view_model.dart';
 import '../widgets/image_status_widget.dart';
 
@@ -17,37 +20,49 @@ class ProcessingPage extends ConsumerStatefulWidget {
 }
 
 class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _rotationAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _ring1Controller;
+  late AnimationController _ring2Controller;
+  late AnimationController _ring3Controller;
+  late AnimationController _pulseController;
+  late AnimationController _dotsController;
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
-  }
-
-  void _setupAnimations() {
-    _animationController = AnimationController(
+    _ring1Controller = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
-    );
+    )..repeat();
 
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _ring2Controller = AnimationController(
+      duration: const Duration(milliseconds: 4500),
+      vsync: this,
+    )..repeat();
 
-    _rotationAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.linear),
-    );
+    _ring3Controller = AnimationController(
+      duration: const Duration(seconds: 6),
+      vsync: this,
+    )..repeat(reverse: true);
 
-    _animationController.repeat(reverse: true);
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1600),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _dotsController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _ring1Controller.dispose();
+    _ring2Controller.dispose();
+    _ring3Controller.dispose();
+    _pulseController.dispose();
+    _dotsController.dispose();
     super.dispose();
   }
 
@@ -56,20 +71,17 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Écouter l'état pour détecter la fin du traitement
     ref.listen<AppState>(imageViewModelProvider, (previous, next) {
       final currentImage = next.currentImage;
-
       if (currentImage != null) {
         if (currentImage.status.isCompleted &&
             currentImage.processedPath != null) {
-          // Navigation vers les résultats
           context.replaceWithResult(
             originalPath: currentImage.originalPath,
             processedPath: currentImage.processedPath!,
+            imageId: currentImage.id,
           );
         } else if (currentImage.status.isFailed) {
-          // Afficher dialog d'erreur
           _showErrorDialog(context, next.error ?? 'Erreur inconnue');
         }
       }
@@ -80,244 +92,201 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Traitement IA'),
         automaticallyImplyLeading: false,
         actions: [
-          // Bouton annuler seulement si en cours
           if (currentImage?.status.isProcessing == true)
             TextButton(
               onPressed: () => context.popOrGoHome(),
               child: const Text('Annuler'),
             ),
+          SizedBox(width: 8.w),
         ],
       ),
-      body: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height -
-                MediaQuery.of(context).padding.top -
-                kToolbarHeight,
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(32.w),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Animation de traitement IA
-                AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: Transform.rotate(
-                        angle: _rotationAnimation.value * 2 * 3.14159,
-                        child: Container(
-                          width: 140.w,
-                          height: 140.w,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.primary,
-                                colorScheme.secondary,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.4,
-                                ),
-                                blurRadius: 30,
-                                spreadRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.auto_fix_high,
-                            size: 60.sp,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 40.h),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 32.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Rings animation
+              _buildRingsAnimation(colorScheme),
+              SizedBox(height: 48.h),
 
-                // Status widget
-                if (currentImage != null) ...[
-                  ImageStatusWidget(
-                    status: currentImage.status,
-                    onRetry: currentImage.status.isFailed
-                        ? () => ref
+              // Status
+              if (currentImage != null) ...[
+                ImageStatusWidget(
+                  status: currentImage.status,
+                  onRetry: currentImage.status.isFailed
+                      ? () => ref
                             .read(imageViewModelProvider.notifier)
                             .retryProcessing(currentImage.id)
-                        : null,
-                  ),
-                  SizedBox(height: 24.h),
-                ],
-
-                // Texte principal
-                Text(
-                  _getStatusText(
-                    currentImage?.status ?? AppImageStatus.processing,
-                  ),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
+                      : null,
                 ),
                 SizedBox(height: 16.h),
-
-                // Sous-texte
-                Text(
-                  _getSubText(
-                    currentImage?.status ?? AppImageStatus.processing,
-                  ),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 40.h),
-
-                // Barre de progression avec étapes
-                if (state.isLoading) ...[
-                  _buildProgressSteps(context, currentImage),
-                  SizedBox(height: 32.h),
-                ],
-
-                // Informations sur l'image
-                if (currentImage != null)
-                  _buildImageInfo(context, currentImage),
               ],
-            ),
+
+              // Main text
+              Text(
+                _getStatusText(
+                  currentImage?.status ?? AppImageStatus.processing,
+                ),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 10.h),
+
+              Text(
+                _getSubText(
+                  currentImage?.status ?? AppImageStatus.processing,
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 48.h),
+
+              // Step indicators
+              if (state.isLoading) _buildStepIndicators(context, currentImage),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProgressSteps(BuildContext context, AppImage? currentImage) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      children: [
-        LinearProgressIndicator(
-          backgroundColor: colorScheme.surfaceContainerHighest,
-          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-        ),
-        SizedBox(height: 16.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildStep(context, Icons.upload, 'Envoi', true),
-            _buildStep(
-              context,
-              Icons.psychology,
-              'IA',
-              currentImage?.status.isProcessing == true,
+  Widget _buildRingsAnimation(ColorScheme colorScheme) {
+    return SizedBox(
+      width: 180.w,
+      height: 180.w,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([
+          _ring1Controller,
+          _ring2Controller,
+          _ring3Controller,
+          _pulseController,
+        ]),
+        builder: (context, _) {
+          return CustomPaint(
+            painter: _RingsPainter(
+              ring1Angle: _ring1Controller.value * 2 * math.pi,
+              ring2Angle: -_ring2Controller.value * 2 * math.pi,
+              ring3Scale: 0.85 + _ring3Controller.value * 0.08,
+              pulseScale: 0.92 + _pulseController.value * 0.08,
+              primaryColor: colorScheme.primary,
+              secondaryColor: AppTheme.accentFuchsia,
+              surfaceColor: colorScheme.surfaceContainerHighest,
             ),
-            _buildStep(context, Icons.download, 'Réception', false),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep(
-    BuildContext context,
-    IconData icon,
-    String label,
-    bool isActive,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8.w),
-          decoration: BoxDecoration(
-            color: isActive
-                ? colorScheme.primary
-                : colorScheme.surfaceContainerHighest,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: isActive
-                ? colorScheme.onPrimary
-                : colorScheme.onSurface.withValues(alpha: 0.5),
-            size: 20.sp,
-          ),
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: isActive
-                ? colorScheme.primary
-                : colorScheme.onSurface.withValues(alpha: 0.5),
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImageInfo(BuildContext context, AppImage image) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12.r),
+            child: Center(
+              child: Container(
+                width: 64.w,
+                height: 64.w,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary, AppTheme.accentFuchsia],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.4),
+                      blurRadius: 24,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.auto_fix_high_rounded,
+                  size: 28.sp,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          );
+        },
       ),
-      child: Row(
-        children: [
-          Icon(Icons.image, color: colorScheme.primary, size: 24.sp),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  image.name,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+    );
+  }
+
+  Widget _buildStepIndicators(BuildContext context, AppImage? currentImage) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    const steps = [
+      (Icons.image_search_rounded, 'Analyse'),
+      (Icons.memory_rounded, 'IA'),
+      (Icons.check_circle_rounded, 'Résultat'),
+    ];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < steps.length; i++) ...[
+          Column(
+            children: [
+              Container(
+                width: 40.w,
+                height: 40.w,
+                decoration: BoxDecoration(
+                  color: i == 1
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainerHighest,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: i == 1
+                        ? colorScheme.primary
+                        : colorScheme.outline,
+                    width: 1.5,
                   ),
                 ),
-                Text(
-                  'Traitement IA en cours',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
+                child: Icon(
+                  steps[i].$1,
+                  size: 18.sp,
+                  color: i == 1
+                      ? Colors.white
+                      : colorScheme.onSurfaceVariant,
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                steps[i].$2,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: i == 1 ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                  fontWeight: i == 1 ? FontWeight.w700 : FontWeight.w400,
+                ),
+              ),
+            ],
           ),
+          if (i < steps.length - 1)
+            Padding(
+              padding: EdgeInsets.only(bottom: 20.h, left: 8.w, right: 8.w),
+              child: SizedBox(
+                width: 32.w,
+                child: Divider(
+                  color: colorScheme.outline,
+                  thickness: 1.5,
+                ),
+              ),
+            ),
         ],
-      ),
+      ],
     );
   }
 
   String _getStatusText(AppImageStatus status) {
     switch (status) {
       case AppImageStatus.pending:
-        return 'Préparation de l\'image...';
+        return 'Préparation...';
       case AppImageStatus.processing:
-        return 'L\'IA analyse votre image...';
+        return 'L\'IA traite votre image';
       case AppImageStatus.completed:
         return 'Traitement terminé !';
       case AppImageStatus.failed:
-        return 'Oups, quelque chose s\'est mal passé';
+        return 'Quelque chose s\'est mal passé';
     }
   }
 
@@ -326,11 +295,11 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
       case AppImageStatus.pending:
         return 'Préparation du traitement';
       case AppImageStatus.processing:
-        return 'L\'intelligence artificielle analyse votre image et supprime l\'arrière-plan automatiquement.\nCela peut prendre quelques secondes.';
+        return 'L\'intelligence artificielle supprime l\'arrière-plan. Quelques secondes suffisent.';
       case AppImageStatus.completed:
-        return 'Ton image est prête ! L\'arrière-plan a été supprimé avec succès.';
+        return 'Ton image est prête !';
       case AppImageStatus.failed:
-        return 'Le traitement a échoué. Vérifie ta connexion internet et réessaie.';
+        return 'Le traitement a échoué. Essaie avec une autre image.';
     }
   }
 
@@ -342,7 +311,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
         title: Row(
           children: [
             Icon(
-              Icons.error_outline,
+              Icons.error_outline_rounded,
               color: Theme.of(context).colorScheme.error,
             ),
             SizedBox(width: 8.w),
@@ -362,7 +331,6 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
             onPressed: () {
               Navigator.of(context).pop();
               ref.read(imageViewModelProvider.notifier).clearError();
-              // Relancer automatiquement si possible
               final currentImage =
                   ref.read(imageViewModelProvider).currentImage;
               if (currentImage != null) {
@@ -377,4 +345,141 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
       ),
     );
   }
+}
+
+class _RingsPainter extends CustomPainter {
+  final double ring1Angle;
+  final double ring2Angle;
+  final double ring3Scale;
+  final double pulseScale;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color surfaceColor;
+
+  const _RingsPainter({
+    required this.ring1Angle,
+    required this.ring2Angle,
+    required this.ring3Scale,
+    required this.pulseScale,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.surfaceColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width / 2;
+
+    // Outer glow pulse
+    final glowPaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.06 * pulseScale)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, maxRadius * pulseScale, glowPaint);
+
+    // Ring 3 — outermost, slow scale pulse
+    _drawDashedRing(
+      canvas,
+      center,
+      maxRadius * 0.95 * ring3Scale,
+      primaryColor.withValues(alpha: 0.15),
+      2,
+      24,
+    );
+
+    // Ring 2 — middle, counter-rotating arcs
+    _drawArcRing(
+      canvas,
+      center,
+      maxRadius * 0.78,
+      secondaryColor.withValues(alpha: 0.3),
+      ring2Angle,
+      3,
+    );
+
+    // Ring 1 — inner, rotating arc
+    _drawArcRing(
+      canvas,
+      center,
+      maxRadius * 0.62,
+      primaryColor.withValues(alpha: 0.6),
+      ring1Angle,
+      3.5,
+    );
+
+    // Inner circle background
+    final innerPaint = Paint()
+      ..color = surfaceColor.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, maxRadius * 0.42, innerPaint);
+  }
+
+  void _drawDashedRing(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Color color,
+    double strokeWidth,
+    int dashCount,
+  ) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    final dashAngle = (2 * math.pi) / dashCount;
+    final gapFraction = 0.35;
+
+    for (var i = 0; i < dashCount; i++) {
+      final startAngle = i * dashAngle;
+      final sweepAngle = dashAngle * (1 - gapFraction);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        paint,
+      );
+    }
+  }
+
+  void _drawArcRing(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    Color color,
+    double startAngle,
+    double strokeWidth,
+  ) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    // Background ring
+    paint.color = color.withValues(alpha: 0.15);
+    canvas.drawCircle(center, radius, paint);
+
+    // Arc with gradient sweep
+    paint.shader = SweepGradient(
+      colors: [Colors.transparent, color],
+      stops: const [0.0, 1.0],
+      transform: GradientRotation(startAngle),
+    ).createShader(Rect.fromCircle(center: center, radius: radius));
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      math.pi * 1.4,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RingsPainter old) =>
+      old.ring1Angle != ring1Angle ||
+      old.ring2Angle != ring2Angle ||
+      old.ring3Scale != ring3Scale ||
+      old.pulseScale != pulseScale;
 }

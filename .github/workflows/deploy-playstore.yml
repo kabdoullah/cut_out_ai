@@ -72,9 +72,7 @@ jobs:
           sed -i 's|storeFile = keystoreProperties\["storeFile"\]?.let { rootProject.file(it) }|storeFile = file("release-keystore.jks")|g' android/app/build.gradle.kts
 
       - name: Build App Bundle
-        env:
-          REMOVEBG_API_KEY: ${{ secrets.REMOVEBG_API_KEY }}
-        run: flutter build appbundle --release --dart-define=REMOVEBG_API_KEY=$REMOVEBG_API_KEY
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
 
       - name: Get version info
         id: version

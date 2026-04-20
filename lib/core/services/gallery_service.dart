@@ -242,38 +242,6 @@ class GalleryService {
     return 'CutOutAI_$timestamp';
   }
 
-  // Obtenir le chemin de sauvegarde (pour info)
-  static Future<String?> getGalleryPath() async {
-    try {
-      // Avec Gal, on ne peut pas obtenir le chemin exact
-      // mais on peut vérifier si Gal est disponible
-      final hasAccess = await Gal.hasAccess();
-      return hasAccess ? 'Galerie système' : null;
-    } catch (e) {
-      debugPrint('❌ Impossible de vérifier l\'accès galerie: $e');
-      return null;
-    }
-  }
-
-  // Vérifier si l'accès à la galerie est disponible
-  static Future<bool> hasGalleryAccess() async {
-    try {
-      return await Gal.hasAccess();
-    } catch (e) {
-      debugPrint('❌ Erreur vérification accès galerie: $e');
-      return false;
-    }
-  }
-
-  // Demander l'accès à la galerie
-  static Future<bool> requestGalleryAccess() async {
-    try {
-      return await Gal.requestAccess();
-    } catch (e) {
-      debugPrint('❌ Erreur demande accès galerie: $e');
-      return false;
-    }
-  }
 }
 
 // Exception personnalisée pour la galerie

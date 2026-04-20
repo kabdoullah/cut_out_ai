@@ -1,20 +1,4 @@
-import 'package:cutout_ai/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-
-// Extensions pour des couleurs personnalisées
-extension AppColors on ColorScheme {
-  Color get success => brightness == Brightness.light
-      ? AppTheme.successColor
-      : const Color(0xFF86EFAC);
-
-  Color get warning => brightness == Brightness.light
-      ? AppTheme.warningColor
-      : const Color(0xFFFBBF24);
-
-  Color get cardShadow => brightness == Brightness.light
-      ? Colors.black.withValues(alpha: 0.1)
-      : Colors.transparent;
-}
 
 // Extensions pour les styles de texte
 extension AppTextStyles on TextTheme {

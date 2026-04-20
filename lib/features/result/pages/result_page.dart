@@ -1,24 +1,32 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/device_service.dart';
 import '../../../core/services/gallery_service.dart';
 import '../../../core/services/image_processing_service.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
+import '../../image_processing/providers/image_view_model.dart';
 import '../widgets/background_color_picker.dart';
+import '../widgets/background_image_picker.dart';
 
 class ResultPage extends ConsumerStatefulWidget {
   final String originalImagePath;
   final String processedImagePath;
+  final String imageId;
 
   const ResultPage({
     super.key,
     required this.originalImagePath,
     required this.processedImagePath,
+    required this.imageId,
   });
 
   @override
@@ -30,6 +38,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
   double _sliderValue = 0.5;
   bool _isComparisonMode = false;
   Color? _backgroundColor;
+  Uint8List? _backgroundImageBytes;
   late AnimationController _celebrationController;
   late Animation<double> _scaleAnimation;
 
@@ -73,22 +82,22 @@ class _ResultPageState extends ConsumerState<ResultPage>
       appBar: AppBar(
         title: const Text('Résultat'),
         leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () {
-            context.popOrGoHome();
-          },
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => context.popOrGoHome(),
         ),
         actions: [
+          if (!_isComparisonMode)
+            IconButton(
+              icon: const Icon(Icons.share_rounded),
+              onPressed: () => _shareResult(context),
+            ),
           IconButton(
-            icon: Icon(_isComparisonMode ? Icons.compare : Icons.share),
-            onPressed: () => _isComparisonMode
-                ? _toggleComparisonMode()
-                : _shareResult(context),
-          ),
-          IconButton(
-            icon: Icon(_isComparisonMode ? Icons.close : Icons.compare),
+            icon: Icon(
+              _isComparisonMode ? Icons.close_rounded : Icons.compare_rounded,
+            ),
             onPressed: _toggleComparisonMode,
           ),
+          SizedBox(width: 4.w),
         ],
       ),
       body: Column(
@@ -103,59 +112,21 @@ class _ResultPageState extends ConsumerState<ResultPage>
                     scale: _scaleAnimation.value,
                     child: Column(
                       children: [
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 8.h),
 
-                        // Message de succès
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 16.w),
-                          padding: EdgeInsets.all(12.w),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8.r),
-                            border: Border.all(
-                              color: Colors.green.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 20.sp,
-                              ),
-                              SizedBox(width: 8.w),
-                              Expanded(
-                                child: Text(
-                                  'Traitement terminé avec succès !',
-                                  style: TextStyle(
-                                    color: Colors.green.shade700,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: 24.h),
-
-                        // Comparaison avant/après ou slider
+                        // Comparison view
                         _isComparisonMode
                             ? _buildSliderComparison(context)
                             : _buildSideBySideComparison(context),
 
-                        SizedBox(height: 16.h),
+                        SizedBox(height: 20.h),
 
-                        // Sélecteur de couleur de fond
-                        BackgroundColorPicker(
-                          selectedColor: _backgroundColor,
-                          onColorSelected: (color) =>
-                              setState(() => _backgroundColor = color),
-                        ),
+                        // Background selection card
+                        _buildBackgroundCard(context),
 
                         SizedBox(height: 16.h),
 
-                        // Infos sur les fichiers
+                        // File info
                         _buildFileInfoCard(context),
                       ],
                     ),
@@ -167,49 +138,122 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
           // Actions du bas
           Container(
-            padding: EdgeInsets.all(24.w),
+            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border(
+                top: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Bouton principal : Sauvegarder
-                SizedBox(
-                  width: double.infinity,
-                  height: 56.h,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _saveResult(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
+                // Save button — gradient
+                GestureDetector(
+                  onTap: () => _saveResult(context),
+                  child: Container(
+                    width: double.infinity,
+                    height: 52.h,
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.brandGradient,
+                      borderRadius: BorderRadius.circular(14.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryViolet.withValues(alpha: 0.35),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    icon: const Icon(Icons.download),
-                    label: const Text('Sauvegarder dans la galerie'),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Sauvegarder',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: 10.h),
 
-                // Actions secondaires
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          context.pushToImagePicker();
-                        },
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Nouvelle photo'),
+                        onPressed: () => context.pushToImagePicker(),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('Nouvelle'),
                       ),
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: 10.w),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => context.pushToGallery(),
-                        icon: const Icon(Icons.photo_library),
-                        label: const Text('Mes créations'),
+                        icon: const Icon(Icons.photo_library_outlined, size: 18),
+                        label: const Text('Galerie'),
                       ),
                     ),
                   ],
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.palette_outlined, size: 16.sp, color: colorScheme.primary),
+              SizedBox(width: 8.w),
+              Text(
+                'Fond',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 14.h),
+          BackgroundColorPicker(
+            selectedColor: _backgroundColor,
+            onColorSelected: (color) => setState(() {
+              _backgroundColor = color;
+              _backgroundImageBytes = null;
+            }),
+          ),
+          SizedBox(height: 14.h),
+          BackgroundImagePicker(
+            selectedImageBytes: _backgroundImageBytes,
+            onImageSelected: (bytes) => setState(() {
+              _backgroundImageBytes = bytes;
+              _backgroundColor = null;
+            }),
           ),
         ],
       ),
@@ -224,29 +268,45 @@ class _ResultPageState extends ConsumerState<ResultPage>
     bool isProcessed,
   ) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       children: [
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w600,
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: isProcessed
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(6.r),
+          ),
+          child: Text(
+            title,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: isProcessed ? colorScheme.primary : colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         SizedBox(height: 8.h),
         Container(
           height: 200.h,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(
+              color: isProcessed
+                  ? colorScheme.primary.withValues(alpha: 0.3)
+                  : colorScheme.outline.withValues(alpha: 0.4),
+              width: isProcessed ? 1.5 : 1,
+            ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(12.r),
             child: _buildImageWidget(
               imagePath,
               isProcessed,
               bgColor: isProcessed ? _backgroundColor : null,
+              bgImageBytes: isProcessed ? _backgroundImageBytes : null,
             ),
           ),
         ),
@@ -258,6 +318,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
     String imagePath,
     bool isProcessed, {
     Color? bgColor,
+    Uint8List? bgImageBytes,
   }) {
     // Vérifier si le fichier existe
     final file = File(imagePath);
@@ -276,6 +337,15 @@ class _ResultPageState extends ConsumerState<ResultPage>
       },
     );
 
+    if (bgImageBytes != null) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.memory(bgImageBytes, fit: BoxFit.cover),
+          image,
+        ],
+      );
+    }
     if (bgColor != null) {
       return ColoredBox(color: bgColor, child: image);
     }
@@ -314,20 +384,25 @@ class _ResultPageState extends ConsumerState<ResultPage>
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Informations des fichiers',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 16.sp, color: colorScheme.primary),
+              SizedBox(width: 8.w),
+              Text(
+                'Fichiers',
+                style: theme.textTheme.titleSmall,
+              ),
+            ],
           ),
           SizedBox(height: 12.h),
           _buildFileInfoRow('Original', widget.originalImagePath),
-          SizedBox(height: 8.h),
+          SizedBox(height: 6.h),
           _buildFileInfoRow('Traité', widget.processedImagePath),
         ],
       ),
@@ -447,7 +522,10 @@ class _ResultPageState extends ConsumerState<ResultPage>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12.r),
-            child: Stack(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final containerWidth = constraints.maxWidth;
+                return Stack(
               children: [
                 // Image de base (après)
                 Positioned.fill(
@@ -455,6 +533,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
                     widget.processedImagePath,
                     true,
                     bgColor: _backgroundColor,
+                    bgImageBytes: _backgroundImageBytes,
                   ),
                 ),
 
@@ -468,7 +547,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
                 // Ligne de séparation
                 Positioned(
-                  left: _sliderValue * MediaQuery.of(context).size.width * 0.8,
+                  left: _sliderValue * containerWidth,
                   top: 0,
                   bottom: 0,
                   child: Container(
@@ -491,9 +570,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
                 // Handle du slider
                 Positioned(
-                  left:
-                      (_sliderValue * MediaQuery.of(context).size.width * 0.8) -
-                          15.w,
+                  left: (_sliderValue * containerWidth) - 15.w,
                   top: (300.h / 2) - 15.h,
                   child: Container(
                     width: 30.w,
@@ -517,6 +594,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
                   ),
                 ),
               ],
+                );
+              },
             ),
           ),
         ),
@@ -562,30 +641,51 @@ class _ResultPageState extends ConsumerState<ResultPage>
     );
   }
 
-  void _shareResult(BuildContext context) async {
-    String pathToShare = widget.processedImagePath;
-
-    if (_backgroundColor != null) {
-      final fileService = ref.read(fileServiceProvider);
-      final colored = await fileService.applyBackgroundColor(
+  Future<Uint8List> _compositeBackground() async {
+    final fileService = ref.read(fileServiceProvider);
+    if (_backgroundImageBytes != null) {
+      return fileService.applyBackgroundImage(
         widget.processedImagePath,
-        _backgroundColor!,
+        _backgroundImageBytes!,
       );
-      final tempDir = await getTemporaryDirectory();
-      final tempPath =
-          '${tempDir.path}/cutout_bg_${DateTime.now().millisecondsSinceEpoch}.png';
-      await File(tempPath).writeAsBytes(colored);
-      pathToShare = tempPath;
     }
-
-    if (!context.mounted) return;
-
-    ShareBottomSheet.showForResult(
-      context: context,
-      originalPath: widget.originalImagePath,
-      processedPath: pathToShare,
-      onShareComplete: () {},
+    return fileService.applyBackgroundColor(
+      widget.processedImagePath,
+      _backgroundColor!,
     );
+  }
+
+  void _shareResult(BuildContext context) async {
+    try {
+      String pathToShare = widget.processedImagePath;
+
+      if (_backgroundImageBytes != null || _backgroundColor != null) {
+        final composited = await _compositeBackground();
+        final tempDir = await getTemporaryDirectory();
+        final tempPath =
+            '${tempDir.path}/cutout_share_${DateTime.now().millisecondsSinceEpoch}.png';
+        await File(tempPath).writeAsBytes(composited);
+        pathToShare = tempPath;
+      }
+
+      if (!context.mounted) return;
+
+      ShareBottomSheet.showForResult(
+        context: context,
+        originalPath: widget.originalImagePath,
+        processedPath: pathToShare,
+        onShareComplete: () {},
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Impossible de préparer le partage: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _saveResult(BuildContext context) async {
@@ -599,13 +699,21 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
       // Sauvegarder l'image traitée dans la galerie (avec couleur de fond si sélectionnée)
       bool success;
-      if (_backgroundColor != null) {
+      String savedPath = widget.processedImagePath;
+      if (_backgroundImageBytes != null || _backgroundColor != null) {
         final fileService = ref.read(fileServiceProvider);
-        final colored = await fileService.applyBackgroundColor(
-          widget.processedImagePath,
-          _backgroundColor!,
+        final composited = await _compositeBackground();
+        final prefix = _backgroundImageBytes != null ? 'bg_img' : 'bg';
+        savedPath = await fileService.saveProcessedImage(
+          composited,
+          '${prefix}_${DateTime.now().millisecondsSinceEpoch}',
         );
-        success = await GalleryService.saveImageBytesToGallery(colored);
+        if (widget.imageId.isNotEmpty) {
+          await ref
+              .read(imageViewModelProvider.notifier)
+              .updateProcessedPath(widget.imageId, savedPath);
+        }
+        success = await GalleryService.saveImageBytesToGallery(composited);
       } else {
         success = await GalleryService.saveImageToGallery(
           widget.processedImagePath,
@@ -636,24 +744,7 @@ class _ResultPageState extends ConsumerState<ResultPage>
               action: SnackBarAction(
                 label: 'Voir',
                 textColor: Colors.white,
-                onPressed: () async {
-                  // ✅ Ouvrir la galerie système
-                  final opened = await DeviceService.openGallery();
-                  if (!opened && context.mounted) {
-                    // Si échec, proposer d'ouvrir les paramètres
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Impossible d\'ouvrir la galerie automatiquement',
-                        ),
-                        action: SnackBarAction(
-                          label: 'Paramètres',
-                          onPressed: () => DeviceService.openSettings(),
-                        ),
-                      ),
-                    );
-                  }
-                },
+                onPressed: () => OpenFilex.open(savedPath),
               ),
             ),
           );

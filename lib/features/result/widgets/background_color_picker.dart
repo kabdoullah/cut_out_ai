@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'checkerboard_painter.dart';
 
 class BackgroundColorPicker extends StatelessWidget {
   final Color? selectedColor;
@@ -175,35 +176,10 @@ class _ColorSwatch extends StatelessWidget {
         ),
         child: ClipOval(
           child: color == null
-              ? CustomPaint(painter: _CheckerboardPainter())
+              ? CustomPaint(painter: const CheckerboardPainter())
               : ColoredBox(color: color!),
         ),
       ),
     );
   }
-}
-
-class _CheckerboardPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const cellSize = 6.0;
-    final light = Paint()..color = Colors.grey.shade200;
-    final dark = Paint()..color = Colors.grey.shade400;
-
-    int row = 0;
-    for (double y = 0; y < size.height; y += cellSize) {
-      int col = 0;
-      for (double x = 0; x < size.width; x += cellSize) {
-        canvas.drawRect(
-          Rect.fromLTWH(x, y, cellSize, cellSize),
-          (row + col).isEven ? light : dark,
-        );
-        col++;
-      }
-      row++;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -15,40 +15,60 @@ class GalleryPage extends ConsumerWidget {
     final state = ref.watch(imageViewModelProvider);
     final stats = ref.watch(imageStatsProvider);
     final completedImages = ref.watch(completedImagesProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes créations'),
+        title: Column(
+          children: [
+            const Text('Mes créations'),
+            if (stats.hasAnyImages)
+              Text(
+                '${stats.completed} image${stats.completed > 1 ? 's' : ''}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.popOrGoHome(),
         ),
         actions: [
           if (stats.hasAnyImages)
             PopupMenuButton(
+              icon: const Icon(Icons.more_vert_rounded),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   onTap: () => _shareMultipleImages(context, completedImages),
                   child: const Row(
                     children: [
-                      Icon(Icons.share),
-                      SizedBox(width: 8),
+                      Icon(Icons.share_rounded, size: 20),
+                      SizedBox(width: 12),
                       Text('Partager tout'),
                     ],
                   ),
                 ),
                 PopupMenuItem(
                   onTap: () => _confirmClearAll(context, ref),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.delete_outline),
-                      SizedBox(width: 8),
-                      Text('Tout supprimer'),
+                      Icon(Icons.delete_outline_rounded,
+                          size: 20, color: colorScheme.error),
+                      const SizedBox(width: 12),
+                      Text('Tout supprimer',
+                          style: TextStyle(color: colorScheme.error)),
                     ],
                   ),
                 ),
               ],
             ),
+          SizedBox(width: 8.w),
         ],
       ),
       body: state.isLoading
@@ -56,9 +76,10 @@ class GalleryPage extends ConsumerWidget {
           : completedImages.isEmpty
               ? _buildEmptyState(context)
               : _buildGalleryGrid(context, completedImages),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.pushToImagePicker(),
-        child: const Icon(Icons.add_photo_alternate),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Nouvelle'),
       ),
     );
   }
@@ -69,35 +90,43 @@ class GalleryPage extends ConsumerWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32.w),
+        padding: EdgeInsets.all(40.w),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.photo_library_outlined,
-              size: 96.sp,
-              color: colorScheme.onSurface.withValues(alpha: 0.3),
+            Container(
+              width: 96.w,
+              height: 96.w,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.outline),
+              ),
+              child: Icon(
+                Icons.photo_library_outlined,
+                size: 40.sp,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             SizedBox(height: 24.h),
             Text(
-              'Aucune création pour le moment',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+              'Aucune création',
+              style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
             Text(
-              'Tes images traitées par l\'intelligence artificielle apparaîtront ici.\nCommence par créer ta première image !',
+              'Tes images traitées apparaîtront ici.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
+                color: colorScheme.onSurfaceVariant,
+                height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 32.h),
-            ElevatedButton.icon(
+            FilledButton.icon(
               onPressed: () => context.pushToImagePicker(),
-              icon: const Icon(Icons.add_photo_alternate),
+              icon: const Icon(Icons.add_photo_alternate_rounded),
               label: const Text('Créer ma première image'),
             ),
           ],
@@ -107,25 +136,16 @@ class GalleryPage extends ConsumerWidget {
   }
 
   Widget _buildGalleryGrid(BuildContext context, List<AppImage> images) {
-    return Column(
-      children: [
-        Expanded(
-          child: GridView.builder(
-            padding: EdgeInsets.all(16.w),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16.w,
-              mainAxisSpacing: 16.h,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              final image = images[index];
-              return _buildImageCard(context, image);
-            },
-          ),
-        ),
-      ],
+    return GridView.builder(
+      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
+        childAspectRatio: 0.82,
+      ),
+      itemCount: images.length,
+      itemBuilder: (context, index) => _buildImageCard(context, images[index]),
     );
   }
 
@@ -133,69 +153,92 @@ class GalleryPage extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      key: ValueKey(image.id),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _viewImage(context, image),
-        onLongPress: () => _showImageOptions(context, image),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image réelle
-            Expanded(
-              child: Stack(
-                children: [
-                  _buildImageWidget(context, image),
-                  // Badge de statut en haut à droite
-                  if (image.processedPath != null)
+    return GestureDetector(
+      onTap: () => _viewImage(context, image),
+      onLongPress: () => _showImageOptions(context, image),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.r),
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.4),
+            ),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildImageWidget(context, image),
+                    // Gradient overlay at bottom
                     Positioned(
-                      top: 8.h,
-                      right: 8.w,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
                       child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 2.h,
-                        ),
+                        height: 40.h,
                         decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 12.sp,
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.5),
+                              Colors.transparent,
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                ],
+                    // Status badge
+                    if (image.processedPath != null)
+                      Positioned(
+                        top: 8.h,
+                        right: 8.w,
+                        child: Container(
+                          padding: EdgeInsets.all(4.w),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF22C55E),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 10.sp,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            // Info
-            Padding(
-              padding: EdgeInsets.all(12.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    image.name,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+              // Info
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 10.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      image.name,
+                      style: theme.textTheme.labelMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    _formatDate(image.createdAt),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    SizedBox(height: 2.h),
+                    Text(
+                      _formatDate(image.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 10.sp,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -203,15 +246,13 @@ class GalleryPage extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return 'Il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}';
-    } else if (difference.inHours > 0) {
-      return 'Il y a ${difference.inHours}h';
-    } else {
-      return 'Il y a ${difference.inMinutes}min';
+    final diff = now.difference(date);
+    if (diff.inDays > 0) {
+      return 'Il y a ${diff.inDays}j';
+    } else if (diff.inHours > 0) {
+      return 'Il y a ${diff.inHours}h';
     }
+    return 'Il y a ${diff.inMinutes}min';
   }
 
   void _viewImage(BuildContext context, AppImage image) {
@@ -219,6 +260,7 @@ class GalleryPage extends ConsumerWidget {
       context.pushToResult(
         originalPath: image.originalPath,
         processedPath: image.processedPath!,
+        imageId: image.id,
       );
     }
   }
@@ -251,16 +293,14 @@ class GalleryPage extends ConsumerWidget {
     );
   }
 
-  // Partager plusieurs images
   void _shareMultipleImages(BuildContext context, List<AppImage> images) {
     if (images.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Aucune image à partager')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucune image à partager')),
+      );
       return;
     }
 
-    // Extraire les chemins des images traitées
     final imagePaths = images
         .where((img) => img.processedPath != null)
         .map((img) => img.processedPath!)
@@ -276,156 +316,122 @@ class GalleryPage extends ConsumerWidget {
     ShareBottomSheet.showForGallery(
       context: context,
       imagePaths: imagePaths,
-      onShareComplete: () {
-        debugPrint('Partage multiple terminé depuis GalleryPage');
-      },
+      onShareComplete: () {},
     );
   }
 
-  // Options pour une image individuelle (long press)
   void _showImageOptions(BuildContext context, AppImage image) {
+    final colorScheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            Container(
-              margin: EdgeInsets.only(top: 12.h),
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2.r),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 8.h),
+              Container(
+                width: 36.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
               ),
-            ),
-
-            // Title
-            Padding(
-              padding: EdgeInsets.all(20.w),
-              child: Text(
-                image.name,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
+              SizedBox(height: 16.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Text(
+                  image.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-
-            // Options
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Column(
-                children: [
-                  // Voir l'image
-                  ListTile(
-                    leading: Icon(
-                      Icons.visibility,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: const Text('Voir'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _viewImage(context, image);
-                    },
-                  ),
-
-                  // Partager
-                  if (image.processedPath != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.share,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      title: const Text('Partager'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        ShareBottomSheet.showForSingleImage(
-                          context: context,
-                          imagePath: image.processedPath!,
-                          onShareComplete: () {
-                            debugPrint('✅ Partage individuel terminé');
-                          },
-                        );
-                      },
-                    ),
-
-                  // Supprimer
-                  ListTile(
-                    leading: Icon(
-                      Icons.delete,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    title: const Text('Supprimer'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _confirmDeleteSingle(context, image);
-                    },
-                  ),
-
-                  SizedBox(height: 20.h),
-                ],
+              SizedBox(height: 8.h),
+              ListTile(
+                leading: Icon(Icons.visibility_rounded,
+                    color: colorScheme.primary),
+                title: const Text('Voir'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _viewImage(context, image);
+                },
               ),
-            ),
-          ],
+              if (image.processedPath != null)
+                ListTile(
+                  leading: Icon(Icons.share_rounded,
+                      color: colorScheme.primary),
+                  title: const Text('Partager'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    ShareBottomSheet.showForSingleImage(
+                      context: context,
+                      imagePath: image.processedPath!,
+                      onShareComplete: () {},
+                    );
+                  },
+                ),
+              ListTile(
+                leading: Icon(Icons.delete_outline_rounded,
+                    color: colorScheme.error),
+                title: Text('Supprimer',
+                    style: TextStyle(color: colorScheme.error)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _confirmDeleteSingle(context, image);
+                },
+              ),
+              SizedBox(height: 16.h),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildImageWidget(BuildContext context, AppImage image) {
-    // Priorité : image traitée si disponible, sinon image originale
     final imagePath = image.processedPath ?? image.originalPath;
     final file = File(imagePath);
 
-    // Vérifier si le fichier existe
-    if (!file.existsSync()) {
-      return _buildImagePlaceholder(context);
-    }
+    if (!file.existsSync()) return _buildImagePlaceholder(context);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8.r),
-      child: Image.file(
-        file,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        // Optimisation mémoire - adapter à la taille de la carte
-        cacheWidth: (120 * (ScreenUtil().pixelRatio ?? 1)).round(),
-        cacheHeight: (150 * (ScreenUtil().pixelRatio ?? 1)).round(),
-        errorBuilder: (context, error, stackTrace) {
-          return _buildImagePlaceholder(context);
-        },
-      ),
+    return Image.file(
+      file,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      cacheWidth: (120 * (ScreenUtil().pixelRatio ?? 1)).round(),
+      cacheHeight: (150 * (ScreenUtil().pixelRatio ?? 1)).round(),
+      errorBuilder: (_, __, ___) => _buildImagePlaceholder(context),
     );
   }
 
   Widget _buildImagePlaceholder(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
     return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: colorScheme.primaryContainer,
-      child: Icon(Icons.image, size: 48.sp, color: colorScheme.primary),
+      color: colorScheme.surfaceContainerHighest,
+      child: Icon(
+        Icons.image_outlined,
+        size: 40.sp,
+        color: colorScheme.onSurfaceVariant,
+      ),
     );
   }
 
-  // Confirmer suppression d'une image
   void _confirmDeleteSingle(BuildContext context, AppImage image) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer l\'image'),
-        content: Text('Voulez-vous vraiment supprimer "${image.name}" ?'),
+        content: Text('Supprimer "${image.name}" ?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -434,8 +440,6 @@ class GalleryPage extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // Supprimer via le ViewModel
-              // Note: Il faudrait ajouter cette méthode au ViewModel
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${image.name} supprimée'),

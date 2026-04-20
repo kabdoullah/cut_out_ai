@@ -73,3 +73,8 @@ keystore_base64.txt
 # Google Cloud Service Account JSON
 service-account*.json
 *-service-account.json
+cutout-475111-d7957d2f06be.json
+
+# Claude Code local config and runtime
+.claude/settings.local.json
+.claude/agent-memory/

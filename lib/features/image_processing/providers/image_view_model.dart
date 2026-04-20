@@ -1,22 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/models/app_state.dart';
-import '../../../core/config/app_config.dart';
+import '../../../core/services/background_removal_service.dart';
 import '../../../core/services/image_processing_service.dart';
-import '../../../core/services/rate_limit_service.dart';
-import '../../../core/services/removebg_service.dart';
 import '../../../core/services/storage_service.dart';
 
 class ImageViewModel extends Notifier<AppState> {
   late final ImageProcessingService _imageProcessingService;
   late final StorageService _storageService;
-  late final RateLimitService _rateLimitService;
 
   @override
   AppState build() {
     _imageProcessingService = ref.watch(imageProcessingServiceProvider);
     _storageService = ref.watch(storageServiceProvider);
-    _rateLimitService = ref.watch(rateLimitServiceProvider);
 
     Future.microtask(() => _initializeApp());
 
@@ -46,19 +42,6 @@ class ImageViewModel extends Notifier<AppState> {
   }
 
   Future<void> processImage(String imagePath, String imageName) async {
-    final allowed = await _rateLimitService.canMakeRequest();
-    if (!allowed) {
-      final tomorrow = DateTime.now().add(const Duration(days: 1));
-      final tomorrowStr =
-          '${tomorrow.day.toString().padLeft(2, '0')}/${tomorrow.month.toString().padLeft(2, '0')}';
-      state = state.copyWith(
-        error:
-            'Limite journalière atteinte (${AppConfig.dailyRequestLimit} requêtes). '
-            'Revenez demain le $tomorrowStr.',
-      );
-      return;
-    }
-
     try {
       final newImage = AppImage.create(
         originalPath: imagePath,
@@ -68,34 +51,22 @@ class ImageViewModel extends Notifier<AppState> {
       state = state.addImage(newImage);
       state = state.startProcessing(newImage.id);
 
-      final processedPath = await _imageProcessingService.removeBackground(
-        imagePath,
-      );
-
-      final _ = await _imageProcessingService.getImageMetadata(imagePath);
+      final processedPath =
+          await _imageProcessingService.removeBackground(imagePath);
 
       state = state.completeProcessing(newImage.id, processedPath);
 
-      await _rateLimitService.recordRequest();
-      ref.invalidate(remainingRequestsProvider);
-
       await _storageService.saveImages(state.images);
-    } on RemoveBgException catch (e) {
+    } on BackgroundRemovalException catch (e) {
       final currentImage = state.currentImage;
       if (currentImage != null) {
-        state = state.failProcessing(
-          currentImage.id,
-          'Remove.bg: ${e.message}',
-        );
+        state = state.failProcessing(currentImage.id, e.message);
         await _storageService.saveImages(state.images);
       }
     } on StorageException catch (e) {
       final currentImage = state.currentImage;
       if (currentImage != null) {
-        state = state.failProcessing(
-          currentImage.id,
-          'Sauvegarde: ${e.message}',
-        );
+        state = state.failProcessing(currentImage.id, 'Sauvegarde: ${e.message}');
       }
     } catch (e) {
       final currentImage = state.currentImage;
@@ -109,9 +80,7 @@ class ImageViewModel extends Notifier<AppState> {
   Future<void> retryProcessing(String imageId) async {
     try {
       final image = state.images.firstWhere((img) => img.id == imageId);
-
       state = state.startProcessing(imageId);
-
       await processImage(image.originalPath, image.name);
     } catch (e) {
       state = state.failProcessing(imageId, 'Échec du retry: $e');
@@ -121,7 +90,6 @@ class ImageViewModel extends Notifier<AppState> {
   Future<void> deleteImage(String imageId) async {
     try {
       await _storageService.deleteImage(imageId, state.images);
-
       state = state.removeImage(imageId);
     } catch (e) {
       state = state.copyWith(error: 'Erreur lors de la suppression: $e');
@@ -137,21 +105,22 @@ class ImageViewModel extends Notifier<AppState> {
     }
   }
 
-  Future<void> refreshData() async {
-    await _initializeApp();
+  Future<void> updateProcessedPath(String imageId, String newPath) async {
+    try {
+      final image = state.images.firstWhere((img) => img.id == imageId);
+      final updated = image.copyWith(processedPath: newPath);
+      state = state.updateImage(updated);
+      await _storageService.saveImages(state.images);
+    } catch (e) {
+      state = state.copyWith(error: 'Erreur mise à jour chemin: $e');
+    }
   }
 
   void clearError() {
     state = state.withoutError;
   }
 
-  void setCurrentImage(AppImage? image) {
-    state = state.copyWith(currentImage: image);
-  }
 
-  void clearCurrentImage() {
-    state = state.withoutCurrentImage;
-  }
 }
 
 final imageViewModelProvider = NotifierProvider<ImageViewModel, AppState>(() {
@@ -164,16 +133,6 @@ final completedImagesProvider = Provider<List<AppImage>>((ref) {
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 });
 
-final processingImagesProvider = Provider<List<AppImage>>((ref) {
-  final state = ref.watch(imageViewModelProvider);
-  return state.images.where((img) => img.status.isProcessing).toList();
-});
-
-final failedImagesProvider = Provider<List<AppImage>>((ref) {
-  final state = ref.watch(imageViewModelProvider);
-  return state.images.where((img) => img.status.isFailed).toList();
-});
-
 final imageStatsProvider = Provider<ImageStats>((ref) {
   final state = ref.watch(imageViewModelProvider);
 
@@ -183,26 +142,6 @@ final imageStatsProvider = Provider<ImageStats>((ref) {
     processing: state.processingImages,
     failed: state.failedImages,
   );
-});
-
-final processImageProvider = FutureProvider.family<void, ProcessImageParams>((
-  ref,
-  params,
-) async {
-  final viewModel = ref.read(imageViewModelProvider.notifier);
-  await viewModel.processImage(params.imagePath, params.imageName);
-});
-
-class ProcessImageParams {
-  final String imagePath;
-  final String imageName;
-
-  const ProcessImageParams({required this.imagePath, required this.imageName});
-}
-
-final appInitializationProvider = Provider<bool>((ref) {
-  final state = ref.watch(imageViewModelProvider);
-  return state.isInitialized;
 });
 
 final isLoadingProvider = Provider<bool>((ref) {

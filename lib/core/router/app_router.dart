@@ -52,9 +52,11 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final originalPath = state.uri.queryParameters['originalPath'] ?? '';
         final processedPath = state.uri.queryParameters['processedPath'] ?? '';
+        final imageId = state.uri.queryParameters['imageId'] ?? '';
         return ResultPage(
           originalImagePath: originalPath,
           processedImagePath: processedPath,
+          imageId: imageId,
         );
       },
     ),
@@ -119,9 +121,10 @@ extension AppRouterExtension on BuildContext {
   void pushToResult({
     required String originalPath,
     required String processedPath,
+    required String imageId,
   }) {
     push(
-      '${AppRoutes.result}?originalPath=${Uri.encodeComponent(originalPath)}&processedPath=${Uri.encodeComponent(processedPath)}',
+      '${AppRoutes.result}?originalPath=${Uri.encodeComponent(originalPath)}&processedPath=${Uri.encodeComponent(processedPath)}&imageId=${Uri.encodeComponent(imageId)}',
     );
   }
 
@@ -129,9 +132,10 @@ extension AppRouterExtension on BuildContext {
   void replaceWithResult({
     required String originalPath,
     required String processedPath,
+    required String imageId,
   }) {
     pushReplacement(
-      '${AppRoutes.result}?originalPath=${Uri.encodeComponent(originalPath)}&processedPath=${Uri.encodeComponent(processedPath)}',
+      '${AppRoutes.result}?originalPath=${Uri.encodeComponent(originalPath)}&processedPath=${Uri.encodeComponent(processedPath)}&imageId=${Uri.encodeComponent(imageId)}',
     );
   }
 
@@ -158,6 +162,7 @@ extension AppRouterExtension on BuildContext {
   void goToResult({
     required String originalPath,
     required String processedPath,
+    required String imageId,
   }) =>
-      pushToResult(originalPath: originalPath, processedPath: processedPath);
+      pushToResult(originalPath: originalPath, processedPath: processedPath, imageId: imageId);
 }

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/router/app_router.dart';
@@ -174,7 +173,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
                         SizedBox(width: 8.w),
                         Text(
                           'Sauvegarder',
-                          style: GoogleFonts.outfit(
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
                             fontSize: 15.sp,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,

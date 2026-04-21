@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/router/app_router.dart';
@@ -95,7 +94,8 @@ class _HomePageState extends ConsumerState<HomePage>
         backgroundColor: Colors.transparent,
         title: Text(
           AppConfig.appName,
-          style: GoogleFonts.outfit(
+          style: TextStyle(
+            fontFamily: 'Outfit',
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
             color: colorScheme.onSurface,
@@ -245,7 +245,8 @@ class _HomePageState extends ConsumerState<HomePage>
       ),
       child: Text(
         label,
-        style: GoogleFonts.outfit(
+        style: TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 11.sp,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -285,7 +286,8 @@ class _HomePageState extends ConsumerState<HomePage>
           SizedBox(width: 5.w),
           Text(
             'IA',
-            style: GoogleFonts.outfit(
+            style: TextStyle(
+              fontFamily: 'Outfit',
               fontSize: 11.sp,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -305,7 +307,8 @@ class _HomePageState extends ConsumerState<HomePage>
         children: [
           TextSpan(
             text: 'Supprime\nl\'arrière-plan\n',
-            style: GoogleFonts.outfit(
+            style: TextStyle(
+              fontFamily: 'Outfit',
               fontSize: 36.sp,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.2,
@@ -315,7 +318,8 @@ class _HomePageState extends ConsumerState<HomePage>
           ),
           TextSpan(
             text: 'avec l\'IA.',
-            style: GoogleFonts.outfit(
+            style: TextStyle(
+              fontFamily: 'Outfit',
               fontSize: 36.sp,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.2,
@@ -355,7 +359,8 @@ class _HomePageState extends ConsumerState<HomePage>
             SizedBox(width: 10.w),
             Text(
               'Choisir une photo',
-              style: GoogleFonts.outfit(
+              style: TextStyle(
+                fontFamily: 'Outfit',
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
@@ -417,7 +422,8 @@ class _HomePageState extends ConsumerState<HomePage>
                   SizedBox(width: 6.w),
                   Text(
                     f.$2,
-                    style: GoogleFonts.outfit(
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w500,
                       color: colorScheme.onSurface,

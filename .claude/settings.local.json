@@ -4,7 +4,12 @@
       "Bash(flutter build appbundle --dart-define-from-file=.env.json --verbose)",
       "Bash(flutter analyze:*)",
       "WebFetch(domain:pub.dev)",
-      "Bash(flutter pub *)"
+      "Bash(flutter pub *)",
+      "Bash(xargs cat *)",
+      "Bash(curl -s \"https://api.github.com/repos/google/fonts/contents/ofl/outfit\")",
+      "Bash(python3 -c \"import sys,json; [print\\(f['name']\\) for f in json.load\\(sys.stdin\\)]\")",
+      "Bash(./gradlew bundleRelease --stacktrace)",
+      "Bash(flutter build *)"
     ]
   }
 }

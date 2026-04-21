@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand palette
@@ -41,89 +40,103 @@ class AppTheme {
   static const Color _darkOutline = Color(0xFF3F3F46);
 
   static TextTheme _textTheme(Color color) {
-    final outfit = GoogleFonts.outfit(color: color);
     return TextTheme(
-      displayLarge: GoogleFonts.outfit(
+      displayLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 56,
         fontWeight: FontWeight.w800,
         letterSpacing: -2,
         color: color,
       ),
-      displayMedium: GoogleFonts.outfit(
+      displayMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 44,
         fontWeight: FontWeight.w700,
         letterSpacing: -1.5,
         color: color,
       ),
-      displaySmall: GoogleFonts.outfit(
+      displaySmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 36,
         fontWeight: FontWeight.w700,
         letterSpacing: -1,
         color: color,
       ),
-      headlineLarge: GoogleFonts.outfit(
+      headlineLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 30,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
         color: color,
       ),
-      headlineMedium: GoogleFonts.outfit(
+      headlineMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 26,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.3,
         color: color,
       ),
-      headlineSmall: GoogleFonts.outfit(
+      headlineSmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 22,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
         color: color,
       ),
-      titleLarge: GoogleFonts.outfit(
+      titleLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.1,
         color: color,
       ),
-      titleMedium: GoogleFonts.outfit(
+      titleMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: color,
       ),
-      titleSmall: GoogleFonts.outfit(
+      titleSmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 14,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
         color: color,
       ),
-      bodyLarge: GoogleFonts.nunito(
+      bodyLarge: TextStyle(
+        fontFamily: 'Nunito',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: color,
       ),
-      bodyMedium: GoogleFonts.nunito(
+      bodyMedium: TextStyle(
+        fontFamily: 'Nunito',
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: color,
       ),
-      bodySmall: GoogleFonts.nunito(
+      bodySmall: TextStyle(
+        fontFamily: 'Nunito',
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: color,
       ),
-      labelLarge: GoogleFonts.outfit(
+      labelLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 14,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.5,
         color: color,
       ),
-      labelMedium: GoogleFonts.outfit(
+      labelMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 12,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.4,
         color: color,
       ),
-      labelSmall: GoogleFonts.outfit(
+      labelSmall: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 10,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.6,
@@ -132,7 +145,7 @@ class AppTheme {
     ).apply(
       bodyColor: color,
       displayColor: color,
-      decorationColor: outfit.color,
+      decorationColor: color,
     );
   }
 
@@ -163,14 +176,15 @@ class AppTheme {
       scrim: Color(0x8009090B),
     ),
     scaffoldBackgroundColor: _lightBg,
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
       backgroundColor: _lightBg,
       foregroundColor: _lightText,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
-      titleTextStyle: GoogleFonts.outfit(
+      titleTextStyle: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: _lightText,
@@ -191,7 +205,8 @@ class AppTheme {
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.outfit(
+        textStyle: const TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -201,7 +216,8 @@ class AppTheme {
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.outfit(
+        textStyle: const TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -212,7 +228,8 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: const BorderSide(color: _lightOutline),
-        textStyle: GoogleFonts.outfit(
+        textStyle: const TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -244,7 +261,8 @@ class AppTheme {
       backgroundColor: _lightCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       side: const BorderSide(color: _lightOutline),
-      labelStyle: GoogleFonts.outfit(
+      labelStyle: const TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: _lightText,
@@ -253,7 +271,7 @@ class AppTheme {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      contentTextStyle: GoogleFonts.nunito(fontSize: 14),
+      contentTextStyle: const TextStyle(fontFamily: 'Nunito', fontSize: 14),
     ),
     dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -302,14 +320,15 @@ class AppTheme {
       scrim: Color(0xB3000000),
     ),
     scaffoldBackgroundColor: _darkBg,
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
       backgroundColor: _darkBg,
       foregroundColor: _darkText,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      titleTextStyle: GoogleFonts.outfit(
+      titleTextStyle: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: _darkText,
@@ -330,7 +349,8 @@ class AppTheme {
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.outfit(
+        textStyle: const TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -340,7 +360,8 @@ class AppTheme {
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.outfit(
+        textStyle: const TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -351,7 +372,8 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: const BorderSide(color: _darkOutline),
-        textStyle: GoogleFonts.outfit(
+        textStyle: const TextStyle(
+          fontFamily: 'Outfit',
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -383,7 +405,8 @@ class AppTheme {
       backgroundColor: _darkCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       side: const BorderSide(color: _darkOutline),
-      labelStyle: GoogleFonts.outfit(
+      labelStyle: const TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: _darkText,
@@ -392,7 +415,7 @@ class AppTheme {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      contentTextStyle: GoogleFonts.nunito(fontSize: 14),
+      contentTextStyle: const TextStyle(fontFamily: 'Nunito', fontSize: 14),
       backgroundColor: _darkCard,
     ),
     dialogTheme: DialogThemeData(

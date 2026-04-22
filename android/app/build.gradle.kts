@@ -53,6 +53,7 @@ android {
         release {
             // Configuration pour production Play Store
             signingConfig = signingConfigs.getByName("release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

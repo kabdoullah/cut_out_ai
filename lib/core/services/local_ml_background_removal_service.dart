@@ -57,8 +57,9 @@ class LocalMlBackgroundRemovalService implements BackgroundRemovalService {
       final uiImage = await BackgroundRemover.instance.removeBg(imageBytes);
 
       // Raw RGBA export: fast memory copy, no compression
-      final byteData =
-          await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+      final byteData = await uiImage.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
       final width = uiImage.width;
       final height = uiImage.height;
       uiImage.dispose();

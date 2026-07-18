@@ -120,7 +120,8 @@ class GalleryService {
         } else {
           // Android < 13 : Permission storage
           debugPrint(
-              '📱 Android < 13 détecté - Utilisation permission storage');
+            '📱 Android < 13 détecté - Utilisation permission storage',
+          );
           return await _requestAndroidStoragePermission();
         }
       } else if (Platform.isIOS) {
@@ -241,7 +242,6 @@ class GalleryService {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     return 'CutOutAI_$timestamp';
   }
-
 }
 
 // Exception personnalisée pour la galerie

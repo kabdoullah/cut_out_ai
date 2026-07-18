@@ -50,11 +50,8 @@ class ImageViewModel extends Notifier<AppState> {
     // the later catch clauses key off `newImage.id` and would never see it.
     final String persistedOriginalPath;
     try {
-      persistedOriginalPath =
-          await _imageProcessingService.persistOriginalImage(
-        imagePath,
-        imageName,
-      );
+      persistedOriginalPath = await _imageProcessingService
+          .persistOriginalImage(imagePath, imageName);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -132,8 +129,6 @@ class ImageViewModel extends Notifier<AppState> {
   void clearError() {
     state = state.withoutError;
   }
-
-
 }
 
 final imageViewModelProvider = NotifierProvider<ImageViewModel, AppState>(() {

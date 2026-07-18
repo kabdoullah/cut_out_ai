@@ -31,8 +31,9 @@ class AppState extends Equatable {
       images: images ?? this.images,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
-      currentImage:
-          clearCurrentImage ? null : (currentImage ?? this.currentImage),
+      currentImage: clearCurrentImage
+          ? null
+          : (currentImage ?? this.currentImage),
       isInitialized: isInitialized ?? this.isInitialized,
     );
   }
@@ -45,16 +46,14 @@ class AppState extends Equatable {
 
   AppState get withoutError => copyWith(clearError: true);
 
-  AppState get withoutCurrentImage => copyWith(clearCurrentImage: true);
-
   @override
   List<Object?> get props => [
-        images,
-        isLoading,
-        error,
-        currentImage,
-        isInitialized,
-      ];
+    images,
+    isLoading,
+    error,
+    currentImage,
+    isInitialized,
+  ];
 
   // Statistiques rapides
   int get completedImages =>
@@ -81,8 +80,9 @@ extension AppStateExtensions on AppState {
 
     return copyWith(
       images: updatedImages,
-      currentImage:
-          currentImage?.id == updatedImage.id ? updatedImage : currentImage,
+      currentImage: currentImage?.id == updatedImage.id
+          ? updatedImage
+          : currentImage,
     );
   }
 

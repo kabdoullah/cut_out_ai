@@ -104,6 +104,17 @@ jobs:
           echo "${{ steps.changelog.outputs.notes }}" > distribution/whatsnew/whatsnew-fr-FR
           echo "${{ steps.changelog.outputs.notes }}" > distribution/whatsnew/whatsnew-en-US
 
+      - name: Compute rollout fraction
+        id: rollout
+        run: |
+          PCT="${{ github.event.inputs.rollout_percentage }}"
+          if [ -z "$PCT" ] || [ "$PCT" == "100" ]; then
+            echo "fraction=" >> $GITHUB_OUTPUT
+          else
+            FRACTION=$(awk "BEGIN { printf \"%.4f\", $PCT / 100 }")
+            echo "fraction=$FRACTION" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1.1.3
         with:
@@ -113,7 +124,7 @@ jobs:
           track: ${{ github.event.inputs.track || 'internal' }}
           status: completed
           inAppUpdatePriority: 2
-          userFraction: ${{ github.event.inputs.rollout_percentage && (github.event.inputs.rollout_percentage != '100') && format('{0}', github.event.inputs.rollout_percentage) || '' }}
+          userFraction: ${{ steps.rollout.outputs.fraction }}
           whatsNewDirectory: distribution/whatsnew
           mappingFile: build/app/outputs/mapping/release/mapping.txt
 

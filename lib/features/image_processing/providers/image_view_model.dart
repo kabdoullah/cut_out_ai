@@ -42,38 +42,51 @@ class ImageViewModel extends Notifier<AppState> {
   }
 
   Future<void> processImage(String imagePath, String imageName) async {
+    // `imagePath` comes from the picker's transient cache/temp directory,
+    // which the OS can purge at any time. Persist a durable copy first so
+    // the original stays displayable for as long as the processed image
+    // does (see FileService.persistOriginalImage). This step runs before
+    // any AppImage exists in state, so its failure is handled on its own —
+    // the later catch clauses key off `newImage.id` and would never see it.
+    final String persistedOriginalPath;
     try {
-      final newImage = AppImage.create(
-        originalPath: imagePath,
-        name: imageName,
+      persistedOriginalPath =
+          await _imageProcessingService.persistOriginalImage(
+        imagePath,
+        imageName,
       );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Impossible d\'enregistrer l\'image originale: $e',
+      );
+      return;
+    }
 
-      state = state.addImage(newImage);
-      state = state.startProcessing(newImage.id);
+    final newImage = AppImage.create(
+      originalPath: persistedOriginalPath,
+      name: imageName,
+    );
 
-      final processedPath =
-          await _imageProcessingService.removeBackground(imagePath);
+    state = state.addImage(newImage);
+    state = state.startProcessing(newImage.id);
+
+    try {
+      final processedPath = await _imageProcessingService.removeBackground(
+        persistedOriginalPath,
+      );
 
       state = state.completeProcessing(newImage.id, processedPath);
 
       await _storageService.saveImages(state.images);
     } on BackgroundRemovalException catch (e) {
-      final currentImage = state.currentImage;
-      if (currentImage != null) {
-        state = state.failProcessing(currentImage.id, e.message);
-        await _storageService.saveImages(state.images);
-      }
+      state = state.failProcessing(newImage.id, e.message);
+      await _storageService.saveImages(state.images);
     } on StorageException catch (e) {
-      final currentImage = state.currentImage;
-      if (currentImage != null) {
-        state = state.failProcessing(currentImage.id, 'Sauvegarde: ${e.message}');
-      }
+      state = state.failProcessing(newImage.id, 'Sauvegarde: ${e.message}');
     } catch (e) {
-      final currentImage = state.currentImage;
-      if (currentImage != null) {
-        state = state.failProcessing(currentImage.id, 'Erreur inattendue: $e');
-        await _storageService.saveImages(state.images);
-      }
+      state = state.failProcessing(newImage.id, 'Erreur inattendue: $e');
+      await _storageService.saveImages(state.images);
     }
   }
 

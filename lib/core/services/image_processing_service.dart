@@ -14,6 +14,16 @@ class ImageProcessingService {
   })  : _backgroundRemovalService = backgroundRemovalService,
         _fileService = fileService;
 
+  /// Copies [pickedImagePath] out of the OS-managed picker cache into
+  /// permanent app storage, returning the durable path to use as an
+  /// [AppImage.originalPath] from now on.
+  Future<String> persistOriginalImage(
+    String pickedImagePath,
+    String imageName,
+  ) {
+    return _fileService.persistOriginalImage(pickedImagePath, imageName);
+  }
+
   Future<String> removeBackground(String imagePath) async {
     final processedBytes =
         await _backgroundRemovalService.removeBackground(imagePath);

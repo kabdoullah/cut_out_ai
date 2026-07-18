@@ -124,6 +124,38 @@ class FileService {
     }
   }
 
+  /// Copies a picked image out of the OS-managed cache/temp directory into
+  /// the app's permanent documents storage.
+  ///
+  /// `image_picker` returns paths under a transient cache/temp directory
+  /// that the OS can purge at any time (app restart, low storage, iOS
+  /// background eviction). Without this copy, [originalName]'s file would
+  /// still be reachable long enough to process, but could disappear by the
+  /// time the result screen — or a later app session via the gallery —
+  /// tries to display it, while the processed image (already saved via
+  /// [saveProcessedImage]) remains available. Persisting a copy up front
+  /// keeps both images equally durable.
+  Future<String> persistOriginalImage(
+    String sourcePath,
+    String originalName,
+  ) async {
+    try {
+      final appDir = await _appDirectory;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = sourcePath.contains('.')
+          ? sourcePath.substring(sourcePath.lastIndexOf('.'))
+          : '.jpg';
+      final fileName = 'original_${timestamp}_$originalName$extension';
+      final filePath = '${appDir.path}/$fileName';
+      await File(sourcePath).copy(filePath);
+      return filePath;
+    } catch (e) {
+      throw FileServiceException(
+        'Impossible de sauvegarder l\'image originale: $e',
+      );
+    }
+  }
+
   Future<void> deleteFile(String path) async {
     try {
       final file = File(path);

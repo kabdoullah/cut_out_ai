@@ -83,7 +83,7 @@ class GalleryPage extends ConsumerWidget {
           ? const Center(child: CircularProgressIndicator())
           : completedImages.isEmpty
           ? _buildEmptyState(context)
-          : _buildGalleryGrid(context, completedImages),
+          : _buildGalleryGrid(context, ref, completedImages),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.pushToImagePicker(),
         icon: const Icon(Icons.add_rounded),
@@ -143,7 +143,11 @@ class GalleryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildGalleryGrid(BuildContext context, List<AppImage> images) {
+  Widget _buildGalleryGrid(
+    BuildContext context,
+    WidgetRef ref,
+    List<AppImage> images,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return GridView.builder(
@@ -156,7 +160,7 @@ class GalleryPage extends ConsumerWidget {
           ),
           itemCount: images.length,
           itemBuilder: (context, index) =>
-              _buildImageCard(context, images[index]),
+              _buildImageCard(context, ref, images[index]),
         );
       },
     );
@@ -170,7 +174,7 @@ class GalleryPage extends ConsumerWidget {
     return 2;
   }
 
-  Widget _buildImageCard(BuildContext context, AppImage image) {
+  Widget _buildImageCard(BuildContext context, WidgetRef ref, AppImage image) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -183,7 +187,7 @@ class GalleryPage extends ConsumerWidget {
         onTap: () => _viewImage(context, image),
         onLongPress: () {
           HapticFeedback.mediumImpact();
-          _showImageOptions(context, image);
+          _showImageOptions(context, ref, image);
         },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16.r),
@@ -351,7 +355,7 @@ class GalleryPage extends ConsumerWidget {
     );
   }
 
-  void _showImageOptions(BuildContext context, AppImage image) {
+  void _showImageOptions(BuildContext context, WidgetRef ref, AppImage image) {
     final colorScheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
@@ -425,7 +429,7 @@ class GalleryPage extends ConsumerWidget {
                 ),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _confirmDeleteSingle(context, image);
+                  _confirmDeleteSingle(context, ref, image);
                 },
               ),
               SizedBox(height: 16.h),
@@ -465,7 +469,11 @@ class GalleryPage extends ConsumerWidget {
     );
   }
 
-  void _confirmDeleteSingle(BuildContext context, AppImage image) {
+  void _confirmDeleteSingle(
+    BuildContext context,
+    WidgetRef ref,
+    AppImage image,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -477,15 +485,20 @@ class GalleryPage extends ConsumerWidget {
             child: const Text('Annuler'),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               HapticFeedback.mediumImpact();
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${image.name} supprimée'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              await ref
+                  .read(imageViewModelProvider.notifier)
+                  .deleteImage(image.id);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${image.name} supprimée'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
             },
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,

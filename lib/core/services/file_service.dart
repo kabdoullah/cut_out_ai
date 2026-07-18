@@ -124,6 +124,20 @@ class FileService {
     }
   }
 
+  /// Best-effort delete — a missing or already-gone file is not an error,
+  /// since the goal is just "make sure this path isn't taking up space".
+  Future<void> deleteFile(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {
+      // Ignore — orphaned file is a minor storage leak, not worth failing
+      // the user's delete action over.
+    }
+  }
+
   /// Copies a picked image out of the OS-managed cache/temp directory into
   /// the app's permanent documents storage.
   ///

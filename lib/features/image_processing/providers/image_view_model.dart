@@ -2,17 +2,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/models/app_state.dart';
 import '../../../core/services/background_removal_service.dart';
+import '../../../core/services/file_service.dart';
 import '../../../core/services/image_processing_service.dart';
 import '../../../core/services/storage_service.dart';
 
 class ImageViewModel extends Notifier<AppState> {
   late final ImageProcessingService _imageProcessingService;
   late final StorageService _storageService;
+  late final FileService _fileService;
 
   @override
   AppState build() {
     _imageProcessingService = ref.watch(imageProcessingServiceProvider);
     _storageService = ref.watch(storageServiceProvider);
+    _fileService = ref.watch(fileServiceProvider);
 
     Future.microtask(() => _initializeApp());
 
@@ -99,8 +102,15 @@ class ImageViewModel extends Notifier<AppState> {
 
   Future<void> deleteImage(String imageId) async {
     try {
+      final image = state.images.firstWhere((img) => img.id == imageId);
       await _storageService.deleteImage(imageId, state.images);
       state = state.removeImage(imageId);
+
+      await _fileService.deleteFile(image.originalPath);
+      final processedPath = image.processedPath;
+      if (processedPath != null) {
+        await _fileService.deleteFile(processedPath);
+      }
     } catch (e) {
       state = state.copyWith(error: 'Erreur lors de la suppression: $e');
     }

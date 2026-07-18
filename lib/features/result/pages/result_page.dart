@@ -7,11 +7,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/ad_service.dart';
 import '../../../core/services/device_service.dart';
 import '../../../core/utils/breakpoints.dart';
 import '../../../core/services/gallery_service.dart';
 import '../../../core/services/image_processing_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/banner_ad_widget.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../../image_processing/providers/image_view_model.dart';
 import '../widgets/background_color_picker.dart';
@@ -137,6 +139,10 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
                           // File info
                           _buildFileInfoCard(context),
+
+                          SizedBox(height: 16.h),
+
+                          const BannerAdWidget(),
                         ],
                       ),
                     ),
@@ -766,6 +772,8 @@ class _ResultPageState extends ConsumerState<ResultPage>
       }
 
       if (success) {
+        AdService.showInterstitialAd();
+
         // Succès
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'core/config/app_config.dart';
+import 'core/services/ad_service.dart';
 import 'core/services/local_ml_background_removal_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
@@ -15,6 +16,8 @@ import 'features/theme/providers/theme_provider.dart' as custom_theme;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalMlBackgroundRemovalService.initialize();
+  await AdService.initialize();
+  AdService.preloadInterstitialAd();
   runApp(const ProviderScope(child: MyApp()));
 }
 

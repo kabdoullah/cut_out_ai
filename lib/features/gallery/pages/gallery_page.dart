@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/breakpoints.dart';
+import '../../../core/widgets/banner_ad_widget.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../../image_processing/providers/image_view_model.dart';
 
@@ -89,6 +90,7 @@ class GalleryPage extends ConsumerWidget {
         icon: const Icon(Icons.add_rounded),
         label: const Text('Nouvelle'),
       ),
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
     );
   }
 

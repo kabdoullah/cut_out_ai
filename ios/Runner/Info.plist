@@ -76,6 +76,9 @@
 		<!-- AdMob App ID — remplacer par l'ID réel en production -->
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-3940256099942544~1458002511</string>
+		<!-- Requis iOS 14+ pour demander l'autorisation de tracking (pubs personnalisées) -->
+		<key>NSUserTrackingUsageDescription</key>
+		<string>Cette autorisation permet d'afficher des publicités plus pertinentes pour vous.</string>
 		<key>SKAdNetworkItems</key>
 		<array>
 			<dict>

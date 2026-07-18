@@ -1,12 +1,14 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/breakpoints.dart';
 import '../../../core/widgets/theme_switcher.dart';
 import '../../image_processing/providers/image_view_model.dart';
 
@@ -39,30 +41,28 @@ class _HomePageState extends ConsumerState<HomePage>
     _orb1Controller = AnimationController(
       duration: const Duration(seconds: 6),
       vsync: this,
-    )..repeat(reverse: true);
+    );
     _orb2Controller = AnimationController(
       duration: const Duration(seconds: 9),
       vsync: this,
-    )..repeat(reverse: true);
+    );
 
     _heroController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
-    )..repeat();
+    );
 
     _fadeIn = CurvedAnimation(
       parent: _entryController,
       curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
     );
-    _slideUp = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
-      ),
-    );
+    _slideUp = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _entryController,
+            curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
     _scaleIn = Tween<double>(begin: 0.92, end: 1.0).animate(
       CurvedAnimation(
         parent: _entryController,
@@ -71,6 +71,28 @@ class _HomePageState extends ConsumerState<HomePage>
     );
 
     _entryController.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _applyMotionPreference();
+  }
+
+  // Ambient orbs and hero divider loop forever — freeze them when the
+  // system reduce-motion setting is on, and re-sync live if it's toggled
+  // while this page is open.
+  void _applyMotionPreference() {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    if (reduceMotion) {
+      _orb1Controller.stop();
+      _orb2Controller.stop();
+      _heroController.stop();
+    } else {
+      if (!_orb1Controller.isAnimating) _orb1Controller.repeat(reverse: true);
+      if (!_orb2Controller.isAnimating) _orb2Controller.repeat(reverse: true);
+      if (!_heroController.isAnimating) _heroController.repeat();
+    }
   }
 
   @override
@@ -116,52 +138,53 @@ class _HomePageState extends ConsumerState<HomePage>
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.symmetric(horizontal: 24.w),
-              child: FadeTransition(
-                opacity: _fadeIn,
-                child: SlideTransition(
-                  position: _slideUp,
-                  child: ScaleTransition(
-                    scale: _scaleIn,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 24.h),
+              child: ContentWidthLimiter(
+                child: FadeTransition(
+                  opacity: _fadeIn,
+                  child: SlideTransition(
+                    position: _slideUp,
+                    child: ScaleTransition(
+                      scale: _scaleIn,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 24.h),
 
-                        // Hero visual
-                        _buildHeroVisual(context),
-                        SizedBox(height: 32.h),
+                          // Hero visual
+                          _buildHeroVisual(context),
+                          SizedBox(height: 32.h),
 
-                        // Headline
-                        _buildHeadline(context),
-                        SizedBox(height: 8.h),
+                          // Headline
+                          _buildHeadline(context),
+                          SizedBox(height: 8.h),
 
-                        // Subheadline
-                        Text(
-                          'Supprime l\'arrière-plan en quelques secondes, directement sur ton téléphone.',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.5,
+                          // Subheadline
+                          Text(
+                            'Supprime l\'arrière-plan en quelques secondes, directement sur ton téléphone.',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  height: 1.5,
+                                ),
                           ),
-                        ),
-                        SizedBox(height: 32.h),
+                          SizedBox(height: 32.h),
 
-                        // Primary CTA
-                        _buildPrimaryCTA(context),
-                        SizedBox(height: 12.h),
+                          // Primary CTA
+                          _buildPrimaryCTA(context),
+                          SizedBox(height: 12.h),
 
-                        // Secondary actions
-                        if (stats.hasAnyImages) ...[
-                          _buildSecondaryActions(context, stats),
+                          // Secondary actions
+                          if (stats.hasAnyImages) ...[
+                            _buildSecondaryActions(context, stats),
+                          ],
+
+                          SizedBox(height: 32.h),
+
+                          // Feature pills
+                          _buildFeaturePills(context),
+                          SizedBox(height: 40.h),
                         ],
-
-                        SizedBox(height: 32.h),
-
-                        // Feature pills
-                        _buildFeaturePills(context),
-                        SizedBox(height: 40.h),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -220,11 +243,7 @@ class _HomePageState extends ConsumerState<HomePage>
                     child: _buildHeroTag('Après', true),
                   ),
                   // AI badge — top-right
-                  Positioned(
-                    right: 14.w,
-                    top: 14.h,
-                    child: _buildAiBadge(),
-                  ),
+                  Positioned(right: 14.w, top: 14.h, child: _buildAiBadge()),
                 ],
               ),
             );
@@ -267,10 +286,7 @@ class _HomePageState extends ConsumerState<HomePage>
           width: 1,
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 8,
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8),
         ],
       ),
       child: Row(
@@ -278,10 +294,7 @@ class _HomePageState extends ConsumerState<HomePage>
         children: [
           Text(
             '✦',
-            style: TextStyle(
-              fontSize: 9.sp,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontSize: 9.sp, color: Colors.white),
           ),
           SizedBox(width: 5.w),
           Text(
@@ -336,38 +349,49 @@ class _HomePageState extends ConsumerState<HomePage>
   }
 
   Widget _buildPrimaryCTA(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.pushToImagePicker(),
-      child: Container(
-        width: double.infinity,
-        height: 56.h,
-        decoration: BoxDecoration(
-          gradient: AppTheme.brandGradient,
-          borderRadius: BorderRadius.circular(14.r),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryViolet.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
-            SizedBox(width: 10.w),
-            Text(
-              'Choisir une photo',
-              style: TextStyle(
-                fontFamily: 'Outfit',
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-                letterSpacing: -0.3,
+    return Semantics(
+      button: true,
+      label: 'Choisir une photo',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          context.pushToImagePicker();
+        },
+        child: Container(
+          width: double.infinity,
+          height: 56.h,
+          decoration: BoxDecoration(
+            gradient: AppTheme.brandGradient,
+            borderRadius: BorderRadius.circular(14.r),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryViolet.withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.add_photo_alternate_rounded,
+                color: Colors.white,
+              ),
+              SizedBox(width: 10.w),
+              Text(
+                'Choisir une photo',
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -592,13 +616,22 @@ class _HeroSplitPainter extends CustomPainter {
     final headBottom = cy - size.height * 0.085;
     body.moveTo(cx - size.height * 0.18, size.height * 0.92);
     body.quadraticBezierTo(
-      cx - size.height * 0.19, headBottom + size.height * 0.05,
-      cx - size.height * 0.13, headBottom,
+      cx - size.height * 0.19,
+      headBottom + size.height * 0.05,
+      cx - size.height * 0.13,
+      headBottom,
     );
-    body.quadraticBezierTo(cx, headBottom - size.height * 0.03, cx + size.height * 0.13, headBottom);
     body.quadraticBezierTo(
-      cx + size.height * 0.19, headBottom + size.height * 0.05,
-      cx + size.height * 0.18, size.height * 0.92,
+      cx,
+      headBottom - size.height * 0.03,
+      cx + size.height * 0.13,
+      headBottom,
+    );
+    body.quadraticBezierTo(
+      cx + size.height * 0.19,
+      headBottom + size.height * 0.05,
+      cx + size.height * 0.18,
+      size.height * 0.92,
     );
     body.close();
     canvas.drawPath(body, gradPaint);

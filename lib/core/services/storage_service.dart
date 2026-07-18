@@ -21,8 +21,7 @@ class StorageService {
   Future<void> saveImages(List<AppImage> images) async {
     try {
       final jsonMaps = images.map((image) => image.toJson()).toList();
-      final jsonString =
-          await Isolate.run(() => _encodeImagesToJson(jsonMaps));
+      final jsonString = await Isolate.run(() => _encodeImagesToJson(jsonMaps));
       final prefs = await SharedPreferences.getInstance();
       final success = await prefs.setString(_imagesKey, jsonString);
       if (!success) {
@@ -41,21 +40,12 @@ class StorageService {
       final jsonString = prefs.getString(_imagesKey);
       if (jsonString == null || jsonString.isEmpty) return [];
 
-      final jsonMaps =
-          await Isolate.run(() => _decodeJsonToMaps(jsonString));
+      final jsonMaps = await Isolate.run(() => _decodeJsonToMaps(jsonString));
       return jsonMaps.map(AppImage.fromJson).toList();
     } catch (e) {
       await clearImages();
       throw StorageException('Données corrompues détectées et nettoyées');
     }
-  }
-
-  Future<void> saveImage(AppImage image, List<AppImage> allImages) async {
-    final index = allImages.indexWhere((img) => img.id == image.id);
-    final updated = index >= 0
-        ? (List.of(allImages)..[index] = image)
-        : [...allImages, image];
-    await saveImages(updated);
   }
 
   Future<void> deleteImage(String imageId, List<AppImage> allImages) async {

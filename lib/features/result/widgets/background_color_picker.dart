@@ -25,6 +25,19 @@ class BackgroundColorPicker extends StatelessWidget {
     Color(0xFF9C27B0), // violet
   ];
 
+  static const List<String> _presetLabels = [
+    'Transparent',
+    'Blanc',
+    'Noir',
+    'Gris',
+    'Rouge',
+    'Vert',
+    'Bleu',
+    'Jaune',
+    'Orange',
+    'Violet',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -47,33 +60,38 @@ class BackgroundColorPicker extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              ..._presets.map(
-                (color) => Padding(
+              for (var i = 0; i < _presets.length; i++)
+                Padding(
                   padding: EdgeInsets.only(right: 8.w),
                   child: _ColorSwatch(
-                    color: color,
-                    isSelected: selectedColor == color,
-                    onTap: () => onColorSelected(color),
+                    color: _presets[i],
+                    label: _presetLabels[i],
+                    isSelected: selectedColor == _presets[i],
+                    onTap: () => onColorSelected(_presets[i]),
                     primaryColor: colorScheme.primary,
                   ),
                 ),
-              ),
-              GestureDetector(
-                onTap: () => _showMoreColors(context),
-                child: Container(
-                  width: 36.w,
-                  height: 36.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.5),
-                      width: 1.5,
+              Semantics(
+                button: true,
+                label: 'Plus de couleurs',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: () => _showMoreColors(context),
+                  child: Container(
+                    width: 36.w,
+                    height: 36.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
                     ),
-                  ),
-                  child: Icon(
-                    Icons.add,
-                    size: 18.sp,
-                    color: colorScheme.onSurface,
+                    child: Icon(
+                      Icons.add,
+                      size: 18.sp,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -116,18 +134,23 @@ class BackgroundColorPicker extends StatelessWidget {
             crossAxisSpacing: 8.w,
             children: moreColors
                 .map(
-                  (color) => GestureDetector(
-                    onTap: () {
-                      Navigator.of(ctx).pop();
-                      onColorSelected(color);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                          width: 1,
+                  (color) => Semantics(
+                    button: true,
+                    label: 'Couleur personnalisée',
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        onColorSelected(color);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 1,
+                          ),
                         ),
                       ),
                     ),
@@ -149,12 +172,14 @@ class BackgroundColorPicker extends StatelessWidget {
 
 class _ColorSwatch extends StatelessWidget {
   final Color? color;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
   final Color primaryColor;
 
   const _ColorSwatch({
     required this.color,
+    required this.label,
     required this.isSelected,
     required this.onTap,
     required this.primaryColor,
@@ -162,22 +187,28 @@ class _ColorSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36.w,
-        height: 36.w,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? primaryColor : Colors.grey.shade300,
-            width: isSelected ? 2.5 : 1,
+    return Semantics(
+      button: true,
+      label: label,
+      selected: isSelected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 36.w,
+          height: 36.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? primaryColor : Colors.grey.shade300,
+              width: isSelected ? 2.5 : 1,
+            ),
           ),
-        ),
-        child: ClipOval(
-          child: color == null
-              ? CustomPaint(painter: const CheckerboardPainter())
-              : ColoredBox(color: color!),
+          child: ClipOval(
+            child: color == null
+                ? CustomPaint(painter: const CheckerboardPainter())
+                : ColoredBox(color: color!),
+          ),
         ),
       ),
     );

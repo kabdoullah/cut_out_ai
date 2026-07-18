@@ -1,3 +1,4 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,28 +24,43 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
+    final useDynamicColor = ref.watch(custom_theme.dynamicColorEnabledProvider);
 
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return MaterialApp.router(
-          title: AppConfig.appName,
-          debugShowCheckedModeBanner: false,
-
-          // Configuration du thème
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: _mapThemeMode(themeMode),
-
-          // Configuration du router
-          routerConfig: appRouter,
-
-          // Wrapper avec gestion d'erreurs, loading et connectivité
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        return ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          splitScreenMode: true,
           builder: (context, child) {
-            return ErrorHandler(
-              child: LoadingOverlay(child: child ?? const SizedBox()),
+            return MaterialApp.router(
+              title: AppConfig.appName,
+              debugShowCheckedModeBanner: false,
+
+              // Configuration du thème — palette de marque par défaut ;
+              // "couleurs du système" harmonise avec le fond d'écran
+              // (Material You, Android 12+) quand l'utilisateur l'active.
+              theme: AppTheme.light(
+                useDynamicColor && lightDynamic != null
+                    ? lightDynamic.harmonized()
+                    : null,
+              ),
+              darkTheme: AppTheme.dark(
+                useDynamicColor && darkDynamic != null
+                    ? darkDynamic.harmonized()
+                    : null,
+              ),
+              themeMode: _mapThemeMode(themeMode),
+
+              // Configuration du router
+              routerConfig: appRouter,
+
+              // Wrapper avec gestion d'erreurs, loading et connectivité
+              builder: (context, child) {
+                return ErrorHandler(
+                  child: LoadingOverlay(child: child ?? const SizedBox()),
+                );
+              },
             );
           },
         );

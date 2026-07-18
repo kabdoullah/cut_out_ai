@@ -170,4 +170,3 @@ class ShareException implements Exception {
   @override
   String toString() => message;
 }
-

@@ -75,6 +75,7 @@ final GoRouter appRouter = GoRouter(
       title: const Text('Erreur'),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
+        tooltip: 'Retour à l\'accueil',
         onPressed: () => context.go(AppRoutes.home),
       ),
     ),
@@ -163,6 +164,9 @@ extension AppRouterExtension on BuildContext {
     required String originalPath,
     required String processedPath,
     required String imageId,
-  }) =>
-      pushToResult(originalPath: originalPath, processedPath: processedPath, imageId: imageId);
+  }) => pushToResult(
+    originalPath: originalPath,
+    processedPath: processedPath,
+    imageId: imageId,
+  );
 }

@@ -78,6 +78,7 @@ class _BackgroundImagePickerState extends State<BackgroundImagePicker> {
               Padding(
                 padding: EdgeInsets.only(right: 8.w),
                 child: _ImageChip(
+                  label: 'Aucune image de fond',
                   isSelected: widget.selectedImageBytes == null,
                   primaryColor: colorScheme.primary,
                   onTap: () => widget.onImageSelected(null),
@@ -88,6 +89,7 @@ class _BackgroundImagePickerState extends State<BackgroundImagePicker> {
                 Padding(
                   padding: EdgeInsets.only(right: 8.w),
                   child: _ImageChip(
+                    label: 'Image de fond sélectionnée',
                     isSelected: true,
                     primaryColor: colorScheme.primary,
                     onTap: () => widget.onImageSelected(null),
@@ -97,31 +99,37 @@ class _BackgroundImagePickerState extends State<BackgroundImagePicker> {
                     ),
                   ),
                 ),
-              GestureDetector(
-                onTap: _isPicking ? null : _pickImage,
-                child: Container(
-                  width: 36.w,
-                  height: 36.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.5),
-                      width: 1.5,
+              Semantics(
+                button: true,
+                enabled: !_isPicking,
+                label: 'Choisir une image de fond',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: _isPicking ? null : _pickImage,
+                  child: Container(
+                    width: 36.w,
+                    height: 36.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
                     ),
-                  ),
-                  child: _isPicking
-                      ? Padding(
-                          padding: EdgeInsets.all(10.w),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.primary,
+                    child: _isPicking
+                        ? Padding(
+                            padding: EdgeInsets.all(10.w),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          )
+                        : Icon(
+                            Icons.add,
+                            size: 18.sp,
+                            color: colorScheme.onSurface,
                           ),
-                        )
-                      : Icon(
-                          Icons.add,
-                          size: 18.sp,
-                          color: colorScheme.onSurface,
-                        ),
+                  ),
                 ),
               ),
             ],
@@ -133,12 +141,14 @@ class _BackgroundImagePickerState extends State<BackgroundImagePicker> {
 }
 
 class _ImageChip extends StatelessWidget {
+  final String label;
   final bool isSelected;
   final Color primaryColor;
   final VoidCallback onTap;
   final Widget child;
 
   const _ImageChip({
+    required this.label,
     required this.isSelected,
     required this.primaryColor,
     required this.onTap,
@@ -147,21 +157,27 @@ class _ImageChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36.w,
-        height: 36.w,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? primaryColor : Colors.grey.shade300,
-            width: isSelected
-                ? _kChipSelectedBorderWidth
-                : _kChipUnselectedBorderWidth,
+    return Semantics(
+      button: true,
+      label: label,
+      selected: isSelected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 36.w,
+          height: 36.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? primaryColor : Colors.grey.shade300,
+              width: isSelected
+                  ? _kChipSelectedBorderWidth
+                  : _kChipUnselectedBorderWidth,
+            ),
           ),
+          child: ClipOval(child: child),
         ),
-        child: ClipOval(child: child),
       ),
     );
   }

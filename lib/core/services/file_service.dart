@@ -156,17 +156,6 @@ class FileService {
     }
   }
 
-  Future<void> deleteFile(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      throw FileServiceException('Impossible de supprimer le fichier: $e');
-    }
-  }
-
   Future<Uint8List> applyBackgroundImage(
     String imagePath,
     Uint8List backgroundImageBytes,
@@ -179,7 +168,9 @@ class FileService {
       );
       return Isolate.run(() => _compositeWithImageBackground(request));
     } catch (e) {
-      throw FileServiceException('Impossible d\'appliquer l\'image de fond: $e');
+      throw FileServiceException(
+        'Impossible d\'appliquer l\'image de fond: $e',
+      );
     }
   }
 
@@ -201,7 +192,9 @@ class FileService {
 
       return Isolate.run(() => _compositeAndEncodePng(request));
     } catch (e) {
-      throw FileServiceException('Impossible d\'appliquer la couleur de fond: $e');
+      throw FileServiceException(
+        'Impossible d\'appliquer la couleur de fond: $e',
+      );
     }
   }
 }

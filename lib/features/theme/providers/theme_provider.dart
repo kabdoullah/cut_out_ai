@@ -33,18 +33,37 @@ class ThemeNotifier extends Notifier<ThemeMode> {
     state = theme;
     _saveTheme(theme);
   }
-
-  // Toggle entre clair et sombre
-  void toggleTheme() {
-    if (state == ThemeMode.light) {
-      setTheme(ThemeMode.dark);
-    } else {
-      setTheme(ThemeMode.light);
-    }
-  }
 }
 
 // Provider avec la nouvelle syntaxe Riverpod 3.0
 final themeProvider = NotifierProvider<ThemeNotifier, ThemeMode>(() {
   return ThemeNotifier();
 });
+
+// Provider pour l'option "couleurs du système" (Material You / dynamic
+// color). Désactivé par défaut pour garder l'identité de marque.
+class DynamicColorNotifier extends Notifier<bool> {
+  static const String _prefsKey = 'dynamic_color_enabled';
+
+  @override
+  bool build() {
+    _load();
+    return false;
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_prefsKey) ?? false;
+  }
+
+  Future<void> setEnabled(bool enabled) async {
+    state = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefsKey, enabled);
+  }
+}
+
+final dynamicColorEnabledProvider =
+    NotifierProvider<DynamicColorNotifier, bool>(() {
+      return DynamicColorNotifier();
+    });

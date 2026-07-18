@@ -79,13 +79,13 @@ class AppImage extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        originalPath,
-        processedPath,
-        createdAt,
-        name,
-        status,
-      ];
+    id,
+    originalPath,
+    processedPath,
+    createdAt,
+    name,
+    status,
+  ];
 }
 
 // États possibles d'une image
@@ -101,20 +101,6 @@ extension AppImageStatusExtension on AppImageStatus {
   bool get isProcessing => this == AppImageStatus.processing;
   bool get isCompleted => this == AppImageStatus.completed;
   bool get isFailed => this == AppImageStatus.failed;
-
-  String get displayName {
-    switch (this) {
-      case AppImageStatus.pending:
-        return 'En attente';
-      case AppImageStatus.processing:
-        return 'En cours';
-      case AppImageStatus.completed:
-        return 'Terminé';
-      case AppImageStatus.failed:
-        return 'Échec';
-    }
-  }
-
 }
 
 class ImageStats {
@@ -130,8 +116,5 @@ class ImageStats {
     required this.failed,
   });
 
-  double get successRate => total > 0 ? (completed / total) * 100 : 0;
   bool get hasAnyImages => total > 0;
-  bool get hasProcessingImages => processing > 0;
-  bool get hasFailedImages => failed > 0;
 }

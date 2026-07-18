@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +8,7 @@ import '../../../core/models/app_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/breakpoints.dart';
 import '../../image_processing/providers/image_view_model.dart';
 import '../widgets/permission_dialog.dart';
 
@@ -33,12 +35,10 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage>
       vsync: this,
     )..forward();
     _fadeIn = CurvedAnimation(parent: _entryController, curve: Curves.easeOut);
-    _slideUp = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _entryController, curve: Curves.easeOutCubic),
-    );
+    _slideUp = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _entryController, curve: Curves.easeOutCubic),
+        );
   }
 
   @override
@@ -63,6 +63,7 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage>
         title: const Text('Choisir une photo'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Retour',
           onPressed: () => context.popOrGoHome(),
         ),
       ),
@@ -72,86 +73,93 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage>
           position: _slideUp,
           child: Padding(
             padding: EdgeInsets.all(24.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 8.h),
-                Text('Source de l\'image', style: theme.textTheme.headlineMedium),
-                SizedBox(height: 8.h),
-                Text(
-                  'L\'IA va analyser et supprimer l\'arrière-plan automatiquement.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.5,
+            child: ContentWidthLimiter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Source de l\'image',
+                    style: theme.textTheme.headlineMedium,
                   ),
-                ),
-                SizedBox(height: 36.h),
-
-                _buildSourceCard(
-                  context: context,
-                  icon: Icons.camera_alt_rounded,
-                  title: 'Appareil photo',
-                  subtitle: 'Prendre une nouvelle photo',
-                  onTap: _handleCameraSelection,
-                  gradient: AppTheme.brandGradientSubtle,
-                  isLoading: _isSelecting,
-                ),
-                SizedBox(height: 16.h),
-
-                _buildSourceCard(
-                  context: context,
-                  icon: Icons.photo_library_rounded,
-                  title: 'Galerie',
-                  subtitle: 'Sélectionner une photo existante',
-                  onTap: _handleGallerySelection,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFD946EF), Color(0xFFEC4899)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  isLoading: _isSelecting,
-                ),
-
-                const Spacer(),
-
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(14.r),
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.4),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'L\'IA va analyser et supprimer l\'arrière-plan automatiquement.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.5,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryViolet.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Icon(
-                          Icons.tips_and_updates_rounded,
-                          color: AppTheme.primaryViolet,
-                          size: 18.sp,
-                        ),
+                  SizedBox(height: 36.h),
+
+                  _buildSourceCard(
+                    context: context,
+                    icon: Icons.camera_alt_rounded,
+                    title: 'Appareil photo',
+                    subtitle: 'Prendre une nouvelle photo',
+                    onTap: _handleCameraSelection,
+                    gradient: AppTheme.brandGradientSubtle,
+                    isLoading: _isSelecting,
+                  ),
+                  SizedBox(height: 16.h),
+
+                  _buildSourceCard(
+                    context: context,
+                    icon: Icons.photo_library_rounded,
+                    title: 'Galerie',
+                    subtitle: 'Sélectionner une photo existante',
+                    onTap: _handleGallerySelection,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFD946EF), Color(0xFFEC4899)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    isLoading: _isSelecting,
+                  ),
+
+                  const Spacer(),
+
+                  Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(14.r),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.4),
                       ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Text(
-                          'Les images avec des contours nets donnent de meilleurs résultats.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.4,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryViolet.withValues(
+                              alpha: 0.12,
+                            ),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Icon(
+                            Icons.tips_and_updates_rounded,
+                            color: AppTheme.primaryViolet,
+                            size: 18.sp,
                           ),
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Text(
+                            'Les images avec des contours nets donnent de meilleurs résultats.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 16.h),
-              ],
+                  SizedBox(height: 16.h),
+                ],
+              ),
             ),
           ),
         ),
@@ -171,66 +179,77 @@ class _ImagePickerPageMVVMState extends ConsumerState<ImagePickerPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return GestureDetector(
-      onTap: isLoading ? null : onTap,
-      child: AnimatedOpacity(
-        opacity: isLoading ? 0.6 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(18.r),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.5),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 80.w,
-                height: 80.w,
-                margin: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(14.r),
-                ),
-                child: isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(22),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Icon(icon, size: 32.sp, color: Colors.white),
+    return Semantics(
+      button: true,
+      enabled: !isLoading,
+      label: '$title. $subtitle',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: isLoading
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onTap();
+              },
+        child: AnimatedOpacity(
+          opacity: isLoading ? 0.6 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(18.r),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.5),
               ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.textTheme.titleMedium),
-                      SizedBox(height: 4.h),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80.w,
+                  height: 80.w,
+                  margin: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  child: isLoading
+                      ? const Padding(
+                          padding: EdgeInsets.all(22),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(icon, size: 32.sp, color: Colors.white),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: theme.textTheme.titleMedium),
+                        SizedBox(height: 4.h),
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(right: 16.w),
-                child: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14.sp,
-                  color: colorScheme.onSurfaceVariant,
+                Padding(
+                  padding: EdgeInsets.only(right: 16.w),
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14.sp,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -1,13 +1,14 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/device_service.dart';
+import '../../../core/utils/breakpoints.dart';
 import '../../../core/services/gallery_service.dart';
 import '../../../core/services/image_processing_service.dart';
 import '../../../core/theme/app_theme.dart';
@@ -61,7 +62,10 @@ class _ResultPageState extends ConsumerState<ResultPage>
 
   void _showCelebration() async {
     await Future.delayed(const Duration(milliseconds: 300));
-    if (mounted) {
+    if (!mounted) return;
+    if (MediaQuery.of(context).disableAnimations) {
+      _celebrationController.value = 1.0;
+    } else {
       _celebrationController.forward();
     }
   }
@@ -82,18 +86,23 @@ class _ResultPageState extends ConsumerState<ResultPage>
         title: const Text('Résultat'),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
+          tooltip: 'Fermer',
           onPressed: () => context.popOrGoHome(),
         ),
         actions: [
           if (!_isComparisonMode)
             IconButton(
               icon: const Icon(Icons.share_rounded),
+              tooltip: 'Partager',
               onPressed: () => _shareResult(context),
             ),
           IconButton(
             icon: Icon(
               _isComparisonMode ? Icons.close_rounded : Icons.compare_rounded,
             ),
+            tooltip: _isComparisonMode
+                ? 'Quitter la comparaison'
+                : 'Comparer avant/après',
             onPressed: _toggleComparisonMode,
           ),
           SizedBox(width: 4.w),
@@ -109,25 +118,27 @@ class _ResultPageState extends ConsumerState<ResultPage>
                 builder: (context, child) {
                   return Transform.scale(
                     scale: _scaleAnimation.value,
-                    child: Column(
-                      children: [
-                        SizedBox(height: 8.h),
+                    child: ContentWidthLimiter(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 8.h),
 
-                        // Comparison view
-                        _isComparisonMode
-                            ? _buildSliderComparison(context)
-                            : _buildSideBySideComparison(context),
+                          // Comparison view
+                          _isComparisonMode
+                              ? _buildSliderComparison(context)
+                              : _buildSideBySideComparison(context),
 
-                        SizedBox(height: 20.h),
+                          SizedBox(height: 20.h),
 
-                        // Background selection card
-                        _buildBackgroundCard(context),
+                          // Background selection card
+                          _buildBackgroundCard(context),
 
-                        SizedBox(height: 16.h),
+                          SizedBox(height: 16.h),
 
-                        // File info
-                        _buildFileInfoCard(context),
-                      ],
+                          // File info
+                          _buildFileInfoCard(context),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -146,66 +157,85 @@ class _ResultPageState extends ConsumerState<ResultPage>
                 ),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Save button — gradient
-                GestureDetector(
-                  onTap: () => _saveResult(context),
-                  child: Container(
-                    width: double.infinity,
-                    height: 52.h,
-                    decoration: BoxDecoration(
-                      gradient: AppTheme.brandGradient,
-                      borderRadius: BorderRadius.circular(14.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryViolet.withValues(alpha: 0.35),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
+            child: ContentWidthLimiter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Save button — gradient
+                  Semantics(
+                    button: true,
+                    label: 'Sauvegarder l\'image dans la galerie',
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        _saveResult(context);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 52.h,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.brandGradient,
+                          borderRadius: BorderRadius.circular(14.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryViolet.withValues(
+                                alpha: 0.35,
+                              ),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.download_rounded, color: Colors.white, size: 20),
-                        SizedBox(width: 8.w),
-                        Text(
-                          'Sauvegarder',
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.download_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'Sauvegarder',
+                              style: TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 10.h),
+                  SizedBox(height: 10.h),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => context.pushToImagePicker(),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('Nouvelle'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.pushToImagePicker(),
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: const Text('Nouvelle'),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => context.pushToGallery(),
-                        icon: const Icon(Icons.photo_library_outlined, size: 18),
-                        label: const Text('Galerie'),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.pushToGallery(),
+                          icon: const Icon(
+                            Icons.photo_library_outlined,
+                            size: 18,
+                          ),
+                          label: const Text('Galerie'),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -229,7 +259,11 @@ class _ResultPageState extends ConsumerState<ResultPage>
         children: [
           Row(
             children: [
-              Icon(Icons.palette_outlined, size: 16.sp, color: colorScheme.primary),
+              Icon(
+                Icons.palette_outlined,
+                size: 16.sp,
+                color: colorScheme.primary,
+              ),
               SizedBox(width: 8.w),
               Text(
                 'Fond',
@@ -283,7 +317,9 @@ class _ResultPageState extends ConsumerState<ResultPage>
           child: Text(
             title,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: isProcessed ? colorScheme.primary : colorScheme.onSurfaceVariant,
+              color: isProcessed
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -392,12 +428,13 @@ class _ResultPageState extends ConsumerState<ResultPage>
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline_rounded, size: 16.sp, color: colorScheme.primary),
-              SizedBox(width: 8.w),
-              Text(
-                'Fichiers',
-                style: theme.textTheme.titleSmall,
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16.sp,
+                color: colorScheme.primary,
               ),
+              SizedBox(width: 8.w),
+              Text('Fichiers', style: theme.textTheme.titleSmall),
             ],
           ),
           SizedBox(height: 12.h),
@@ -526,74 +563,77 @@ class _ResultPageState extends ConsumerState<ResultPage>
               builder: (context, constraints) {
                 final containerWidth = constraints.maxWidth;
                 return Stack(
-              children: [
-                // Image de base (après)
-                Positioned.fill(
-                  child: _buildImageWidget(
-                    widget.processedImagePath,
-                    true,
-                    bgColor: _backgroundColor,
-                    bgImageBytes: _backgroundImageBytes,
-                  ),
-                ),
-
-                // Image overlay (avant) avec clip
-                Positioned.fill(
-                  child: ClipRect(
-                    clipper: _SliderClipper(_sliderValue),
-                    child: _buildImageWidget(widget.originalImagePath, false),
-                  ),
-                ),
-
-                // Ligne de séparation
-                Positioned(
-                  left: _sliderValue * containerWidth,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 2,
-                    color: Colors.white,
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 8.h),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 4,
-                          ),
-                        ],
+                  children: [
+                    // Image de base (après)
+                    Positioned.fill(
+                      child: _buildImageWidget(
+                        widget.processedImagePath,
+                        true,
+                        bgColor: _backgroundColor,
+                        bgImageBytes: _backgroundImageBytes,
                       ),
                     ),
-                  ),
-                ),
 
-                // Handle du slider
-                Positioned(
-                  left: (_sliderValue * containerWidth) - 15.w,
-                  top: (300.h / 2) - 15.h,
-                  child: Container(
-                    width: 30.w,
-                    height: 30.h,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 6,
+                    // Image overlay (avant) avec clip
+                    Positioned.fill(
+                      child: ClipRect(
+                        clipper: _SliderClipper(_sliderValue),
+                        child: _buildImageWidget(
+                          widget.originalImagePath,
+                          false,
                         ),
-                      ],
+                      ),
                     ),
-                    child: Icon(
-                      Icons.compare_arrows,
-                      color: Colors.white,
-                      size: 16.sp,
+
+                    // Ligne de séparation
+                    Positioned(
+                      left: _sliderValue * containerWidth,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 2,
+                        color: Colors.white,
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 8.h),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
+
+                    // Handle du slider
+                    Positioned(
+                      left: (_sliderValue * containerWidth) - 15.w,
+                      top: (300.h / 2) - 15.h,
+                      child: Container(
+                        width: 30.w,
+                        height: 30.h,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.compare_arrows,
+                          color: Colors.white,
+                          size: 16.sp,
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),

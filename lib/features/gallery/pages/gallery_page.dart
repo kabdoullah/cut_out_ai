@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/models/app_image.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/breakpoints.dart';
 import '../../../core/widgets/share_bottom_sheet.dart';
 import '../../image_processing/providers/image_view_model.dart';
 
@@ -34,6 +36,7 @@ class GalleryPage extends ConsumerWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Retour',
           onPressed: () => context.popOrGoHome(),
         ),
         actions: [
@@ -58,11 +61,16 @@ class GalleryPage extends ConsumerWidget {
                   onTap: () => _confirmClearAll(context, ref),
                   child: Row(
                     children: [
-                      Icon(Icons.delete_outline_rounded,
-                          size: 20, color: colorScheme.error),
+                      Icon(
+                        Icons.delete_outline_rounded,
+                        size: 20,
+                        color: colorScheme.error,
+                      ),
                       const SizedBox(width: 12),
-                      Text('Tout supprimer',
-                          style: TextStyle(color: colorScheme.error)),
+                      Text(
+                        'Tout supprimer',
+                        style: TextStyle(color: colorScheme.error),
+                      ),
                     ],
                   ),
                 ),
@@ -74,8 +82,8 @@ class GalleryPage extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : completedImages.isEmpty
-              ? _buildEmptyState(context)
-              : _buildGalleryGrid(context, completedImages),
+          ? _buildEmptyState(context)
+          : _buildGalleryGrid(context, completedImages),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.pushToImagePicker(),
         icon: const Icon(Icons.add_rounded),
@@ -136,108 +144,130 @@ class GalleryPage extends ConsumerWidget {
   }
 
   Widget _buildGalleryGrid(BuildContext context, List<AppImage> images) {
-    return GridView.builder(
-      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 12.h,
-        childAspectRatio: 0.82,
-      ),
-      itemCount: images.length,
-      itemBuilder: (context, index) => _buildImageCard(context, images[index]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.builder(
+          padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 100.h),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _crossAxisCountFor(constraints.maxWidth),
+            crossAxisSpacing: 12.w,
+            mainAxisSpacing: 12.h,
+            childAspectRatio: 0.82,
+          ),
+          itemCount: images.length,
+          itemBuilder: (context, index) =>
+              _buildImageCard(context, images[index]),
+        );
+      },
     );
+  }
+
+  // 2 columns on phones, more as the grid gets room on tablets/foldables —
+  // otherwise cards just stretch wider instead of showing more at once.
+  int _crossAxisCountFor(double width) {
+    if (width >= Breakpoints.expanded) return 4;
+    if (width >= Breakpoints.medium) return 3;
+    return 2;
   }
 
   Widget _buildImageCard(BuildContext context, AppImage image) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return GestureDetector(
-      onTap: () => _viewImage(context, image),
-      onLongPress: () => _showImageOptions(context, image),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16.r),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.4),
+    return Semantics(
+      button: true,
+      label: 'Image ${image.name}, créée ${_formatDate(image.createdAt)}',
+      hint: 'Appui long pour plus d\'options',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () => _viewImage(context, image),
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          _showImageOptions(context, image);
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16.r),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.4),
+              ),
+              borderRadius: BorderRadius.circular(16.r),
             ),
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _buildImageWidget(context, image),
-                    // Gradient overlay at bottom
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 40.h,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.5),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Status badge
-                    if (image.processedPath != null)
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _buildImageWidget(context, image),
+                      // Gradient overlay at bottom
                       Positioned(
-                        top: 8.h,
-                        right: 8.w,
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
                         child: Container(
-                          padding: EdgeInsets.all(4.w),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF22C55E),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.check_rounded,
-                            color: Colors.white,
-                            size: 10.sp,
+                          height: 40.h,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.5),
+                                Colors.transparent,
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                  ],
+                      // Status badge
+                      if (image.processedPath != null)
+                        Positioned(
+                          top: 8.h,
+                          right: 8.w,
+                          child: Container(
+                            padding: EdgeInsets.all(4.w),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.check_rounded,
+                              color: Colors.white,
+                              size: 10.sp,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              // Info
-              Padding(
-                padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 10.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      image.name,
-                      style: theme.textTheme.labelMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      _formatDate(image.createdAt),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 10.sp,
+                // Info
+                Padding(
+                  padding: EdgeInsets.fromLTRB(10.w, 8.h, 10.w, 10.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        image.name,
+                        style: theme.textTheme.labelMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 2.h),
+                      Text(
+                        _formatDate(image.createdAt),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 10.sp,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -280,6 +310,7 @@ class GalleryPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () {
+              HapticFeedback.mediumImpact();
               Navigator.of(context).pop();
               ref.read(imageViewModelProvider.notifier).clearAllImages();
             },
@@ -295,9 +326,9 @@ class GalleryPage extends ConsumerWidget {
 
   void _shareMultipleImages(BuildContext context, List<AppImage> images) {
     if (images.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune image à partager')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Aucune image à partager')));
       return;
     }
 
@@ -357,8 +388,10 @@ class GalleryPage extends ConsumerWidget {
               ),
               SizedBox(height: 8.h),
               ListTile(
-                leading: Icon(Icons.visibility_rounded,
-                    color: colorScheme.primary),
+                leading: Icon(
+                  Icons.visibility_rounded,
+                  color: colorScheme.primary,
+                ),
                 title: const Text('Voir'),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -367,8 +400,10 @@ class GalleryPage extends ConsumerWidget {
               ),
               if (image.processedPath != null)
                 ListTile(
-                  leading: Icon(Icons.share_rounded,
-                      color: colorScheme.primary),
+                  leading: Icon(
+                    Icons.share_rounded,
+                    color: colorScheme.primary,
+                  ),
                   title: const Text('Partager'),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -380,10 +415,14 @@ class GalleryPage extends ConsumerWidget {
                   },
                 ),
               ListTile(
-                leading: Icon(Icons.delete_outline_rounded,
-                    color: colorScheme.error),
-                title: Text('Supprimer',
-                    style: TextStyle(color: colorScheme.error)),
+                leading: Icon(
+                  Icons.delete_outline_rounded,
+                  color: colorScheme.error,
+                ),
+                title: Text(
+                  'Supprimer',
+                  style: TextStyle(color: colorScheme.error),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _confirmDeleteSingle(context, image);
@@ -439,6 +478,7 @@ class GalleryPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () {
+              HapticFeedback.mediumImpact();
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

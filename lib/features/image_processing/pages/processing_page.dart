@@ -33,27 +33,54 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
     _ring1Controller = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
-    )..repeat();
+    );
 
     _ring2Controller = AnimationController(
       duration: const Duration(milliseconds: 4500),
       vsync: this,
-    )..repeat();
+    );
 
     _ring3Controller = AnimationController(
       duration: const Duration(seconds: 6),
       vsync: this,
-    )..repeat(reverse: true);
+    );
 
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1600),
       vsync: this,
-    )..repeat(reverse: true);
+    );
 
     _dotsController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
-    )..repeat();
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _applyMotionPreference();
+  }
+
+  // The rings/pulse loop forever while processing — freeze them under
+  // reduce-motion instead of spinning indefinitely regardless of the setting.
+  void _applyMotionPreference() {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    if (reduceMotion) {
+      _ring1Controller.stop();
+      _ring2Controller.stop();
+      _ring3Controller.stop();
+      _pulseController.stop();
+      _dotsController.stop();
+    } else {
+      if (!_ring1Controller.isAnimating) _ring1Controller.repeat();
+      if (!_ring2Controller.isAnimating) _ring2Controller.repeat();
+      if (!_ring3Controller.isAnimating) {
+        _ring3Controller.repeat(reverse: true);
+      }
+      if (!_pulseController.isAnimating) _pulseController.repeat(reverse: true);
+      if (!_dotsController.isAnimating) _dotsController.repeat();
+    }
   }
 
   @override
@@ -138,9 +165,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
               SizedBox(height: 10.h),
 
               Text(
-                _getSubText(
-                  currentImage?.status ?? AppImageStatus.processing,
-                ),
+                _getSubText(currentImage?.status ?? AppImageStatus.processing),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   height: 1.5,
@@ -237,25 +262,23 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
                       : colorScheme.surfaceContainerHighest,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: i == 1
-                        ? colorScheme.primary
-                        : colorScheme.outline,
+                    color: i == 1 ? colorScheme.primary : colorScheme.outline,
                     width: 1.5,
                   ),
                 ),
                 child: Icon(
                   steps[i].$1,
                   size: 18.sp,
-                  color: i == 1
-                      ? Colors.white
-                      : colorScheme.onSurfaceVariant,
+                  color: i == 1 ? Colors.white : colorScheme.onSurfaceVariant,
                 ),
               ),
               SizedBox(height: 6.h),
               Text(
                 steps[i].$2,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: i == 1 ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                  color: i == 1
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
                   fontWeight: i == 1 ? FontWeight.w700 : FontWeight.w400,
                 ),
               ),
@@ -266,10 +289,7 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
               padding: EdgeInsets.only(bottom: 20.h, left: 8.w, right: 8.w),
               child: SizedBox(
                 width: 32.w,
-                child: Divider(
-                  color: colorScheme.outline,
-                  thickness: 1.5,
-                ),
+                child: Divider(color: colorScheme.outline, thickness: 1.5),
               ),
             ),
         ],
@@ -331,8 +351,9 @@ class _ProcessingPageMVVMState extends ConsumerState<ProcessingPage>
             onPressed: () {
               Navigator.of(context).pop();
               ref.read(imageViewModelProvider.notifier).clearError();
-              final currentImage =
-                  ref.read(imageViewModelProvider).currentImage;
+              final currentImage = ref
+                  .read(imageViewModelProvider)
+                  .currentImage;
               if (currentImage != null) {
                 ref
                     .read(imageViewModelProvider.notifier)

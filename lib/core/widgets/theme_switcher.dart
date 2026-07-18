@@ -2,20 +2,30 @@ import 'package:cutout_ai/features/theme/providers/theme_provider.dart';
 import 'package:flutter/material.dart' hide ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+const _dynamicColorToggleValue = 'dynamic_color_toggle';
+
 class ThemeSwitcher extends ConsumerWidget {
   const ThemeSwitcher({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentTheme = ref.watch(themeProvider);
+    final useDynamicColor = ref.watch(dynamicColorEnabledProvider);
 
-    return PopupMenuButton<ThemeMode>(
+    return PopupMenuButton<Object>(
+      tooltip: 'Changer le thème',
       icon: Icon(
         _getIconForTheme(currentTheme),
         color: Theme.of(context).colorScheme.onSurface,
       ),
-      onSelected: (ThemeMode theme) {
-        ref.read(themeProvider.notifier).setTheme(theme);
+      onSelected: (Object value) {
+        if (value is ThemeMode) {
+          ref.read(themeProvider.notifier).setTheme(value);
+        } else if (value == _dynamicColorToggleValue) {
+          ref
+              .read(dynamicColorEnabledProvider.notifier)
+              .setEnabled(!useDynamicColor);
+        }
       },
       itemBuilder: (context) => [
         PopupMenuItem(
@@ -60,6 +70,31 @@ class ThemeSwitcher extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               const Text('Système'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: _dynamicColorToggleValue,
+          child: Row(
+            children: [
+              Icon(
+                Icons.wallpaper_rounded,
+                color: useDynamicColor
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              const Expanded(child: Text('Couleurs du système')),
+              Switch(
+                value: useDynamicColor,
+                onChanged: (enabled) {
+                  Navigator.of(context).pop();
+                  ref
+                      .read(dynamicColorEnabledProvider.notifier)
+                      .setEnabled(enabled);
+                },
+              ),
             ],
           ),
         ),

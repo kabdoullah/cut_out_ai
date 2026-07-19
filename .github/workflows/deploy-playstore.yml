@@ -110,9 +110,11 @@ jobs:
           PCT="${{ github.event.inputs.rollout_percentage }}"
           if [ -z "$PCT" ] || [ "$PCT" == "100" ]; then
             echo "fraction=" >> $GITHUB_OUTPUT
+            echo "status=completed" >> $GITHUB_OUTPUT
           else
             FRACTION=$(awk "BEGIN { printf \"%.4f\", $PCT / 100 }")
             echo "fraction=$FRACTION" >> $GITHUB_OUTPUT
+            echo "status=inProgress" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload to Play Store
@@ -122,7 +124,7 @@ jobs:
           packageName: com.abdoulaye.cutoutai
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: ${{ github.event.inputs.track || 'internal' }}
-          status: completed
+          status: ${{ steps.rollout.outputs.status }}
           inAppUpdatePriority: 2
           userFraction: ${{ steps.rollout.outputs.fraction }}
           whatsNewDirectory: distribution/whatsnew

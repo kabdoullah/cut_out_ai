@@ -58,7 +58,7 @@ class MyApp extends ConsumerWidget {
               // Configuration du router
               routerConfig: appRouter,
 
-              // Wrapper avec gestion d'erreurs, loading et connectivité
+              // Wrapper avec gestion d'erreurs, loading
               builder: (context, child) {
                 return ErrorHandler(
                   child: LoadingOverlay(child: child ?? const SizedBox()),

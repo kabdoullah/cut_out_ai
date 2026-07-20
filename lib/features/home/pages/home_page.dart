@@ -114,6 +114,15 @@ class _HomePageState extends ConsumerState<HomePage>
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark
+              ? Brightness.light
+              : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        ),
         title: Text(
           AppConfig.appName,
           style: TextStyle(
@@ -132,7 +141,7 @@ class _HomePageState extends ConsumerState<HomePage>
         children: [
           // Animated background orbs
           _buildAmbientBackground(isDark),
-
+    
           // Content
           SafeArea(
             child: SingleChildScrollView(
@@ -149,15 +158,15 @@ class _HomePageState extends ConsumerState<HomePage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 24.h),
-
+    
                           // Hero visual
                           _buildHeroVisual(context),
                           SizedBox(height: 32.h),
-
+    
                           // Headline
                           _buildHeadline(context),
                           SizedBox(height: 8.h),
-
+    
                           // Subheadline
                           Text(
                             'Supprime l\'arrière-plan en quelques secondes, directement sur ton téléphone.',
@@ -168,18 +177,18 @@ class _HomePageState extends ConsumerState<HomePage>
                                 ),
                           ),
                           SizedBox(height: 32.h),
-
+    
                           // Primary CTA
                           _buildPrimaryCTA(context),
                           SizedBox(height: 12.h),
-
+    
                           // Secondary actions
                           if (stats.hasAnyImages) ...[
                             _buildSecondaryActions(context, stats),
                           ],
-
+    
                           SizedBox(height: 32.h),
-
+    
                           // Feature pills
                           _buildFeaturePills(context),
                           SizedBox(height: 40.h),

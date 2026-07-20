@@ -78,7 +78,7 @@ Routes are defined as constants in `AppRoutes` (`lib/core/router/app_router.dart
 
 - `lib/core/config/app_config.dart` — constants (10MB image size limit, Play Store link)
 - Assets: `assets/icons/` (app icon), `assets/splash/` (splash screen), `assets/fonts/` (Outfit, Nunito)
-- `flutter_native_splash` config lives in `pubspec.yaml` but the package itself is commented out of `dev_dependencies` due to Gradle 8.7 incompatibility
+- Splash screen configured via `flutter_native_splash` (`pubspec.yaml`, `flutter_native_splash:` section): app icon centered on solid white background (same in light/dark). Regenerate native assets after changing the config with `dart run flutter_native_splash:create`
 
 ## Platform Support
 - Android: minSdk from Flutter default, targetSdk 35 (Play Store 2025 compliance)

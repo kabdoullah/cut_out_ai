@@ -78,9 +78,9 @@ Routes are defined as constants in `AppRoutes` (`lib/core/router/app_router.dart
 
 - `lib/core/config/app_config.dart` — constants (10MB image size limit, Play Store link)
 - Assets: `assets/icons/` (app icon), `assets/splash/` (splash screen), `assets/fonts/` (Outfit, Nunito)
-- Splash screen configured via `flutter_native_splash` (`pubspec.yaml`, `flutter_native_splash:` section): app icon centered on solid white background (same in light/dark). Regenerate native assets after changing the config with `dart run flutter_native_splash:create`
+- Android splash screen configured manually per the [Android 12+ SplashScreen API](https://docs.flutter.dev/platform-integration/android/splash-screen) (no `flutter_native_splash` dependency): `android/app/src/main/res/{values,values-night}/styles.xml` (pre-Android 12 `windowBackground`) and `{values-v31,values-night-v31}/styles.xml` (`windowSplashScreenBackground`/`windowSplashScreenAnimatedIcon`/`windowSplashScreenIconBackgroundColor`). Edit the XML/drawables directly to change the splash — there's no generator step to rerun
 
 ## Platform Support
-- Android: minSdk from Flutter default, targetSdk 35 (Play Store 2025 compliance)
+- Android: minSdk from Flutter default, targetSdk 36 (Play Store 2026 compliance)
 - iOS: minimum deployment target 16.0 (required by `flutter_onnxruntime`)
 - Web/desktop: configured but not primary targets
